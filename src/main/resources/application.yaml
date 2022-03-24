@@ -1,0 +1,33 @@
+server:
+  port: 30000
+
+spring:
+  datasource:
+    name: defaultDataSource
+    url: jdbc:mysql://localhost:3306/chargingpile?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&serverTimezone=UTC&useSSL=false
+#    url: jdbc:mysql://localhost:3306/testdb?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&serverTimezone=UTC&useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: asdHAO0624770
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  devtools:
+    restart:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 20MB #单个文件最大为20M
+      max-request-size: 20MB #单次请求文件总数大小为20Ms
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/xml/*.xml #指定mapper.xml路径
+  global-config:
+    db-config:
+      id-type: auto #全局默认主键类型设置为自增
+  configuration:
+    auto-mapping-behavior: partial #只对非嵌套的 resultMap 进行自动映射
+    map-underscore-to-camel-case: true #开启自动驼峰命名规则映射
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启SQL语句打印
+
+
