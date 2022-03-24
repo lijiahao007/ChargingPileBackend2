@@ -263,9 +263,5 @@ public class ChargingPileStationController {
         }
         return new ObjectMapper().writeValueAsString("success filesize=" + files.size());
     }
-
-
-
-
 }
 

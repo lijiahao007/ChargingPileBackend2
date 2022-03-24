@@ -35,9 +35,7 @@ public class MybatisPlusGenerator {
                 })
                 .strategyConfig(builder -> {
                     builder
-//                            .addInclude(
-//                                    "open_day_in_week",
-//                                    "appointment") // 设置表名
+//                            .addInclude("message") // 设置表名
                             .enableSkipView()
                             .entityBuilder()
                             .idType(IdType.AUTO);

@@ -14,5 +14,6 @@ public class TimeTest {
         String time = "23:59";
         LocalTime localTime1 = LocalTime.parse(time);
         System.out.println(localTime1);
+        System.out.println(System.currentTimeMillis());
     }
 }
