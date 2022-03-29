@@ -3,6 +3,7 @@ package com.lijiahao.chargingpilebackend.controller.interceptor;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lijiahao.chargingpilebackend.controller.annotation.PassToken;
 import com.lijiahao.chargingpilebackend.controller.exception.NoLoginException;
+import com.lijiahao.chargingpilebackend.controller.exception.TokenUnavailableException;
 import com.lijiahao.chargingpilebackend.controller.exception.UserNotExistException;
 import com.lijiahao.chargingpilebackend.entity.User;
 import com.lijiahao.chargingpilebackend.service.impl.UserServiceImpl;
@@ -30,7 +31,7 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
 
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         // 预处理回调方法,实现处理器的预处理。第三个参数为响应的处理器,自定义Controller,返回值为true表示继续流程（如调用下一个拦截器或处理器）或者接着执行
         // 从请求头中取出 token  这里需要和前端约定好把jwt放到请求头一个叫token的地方
         String token = request.getHeader("token");
@@ -51,24 +52,31 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
         log.info("method->" + method.getName());
         log.info("是否存在PassToken注解" + method.isAnnotationPresent(PassToken.class));
         log.info("被JWT拦截验证了！！！！！！ token = " + token);
-        if (token == null) {
-            // 没有token, 未登录
-            throw new NoLoginException();
-        } else {
-            String userId = JwtUtils.getUserID(token);
-            log.info("userId:" + userId );
-            log.info("userService:" + userService);
-            long count = userService.count(new QueryWrapper<User>().eq("id", userId));
-            if (count != 1) {
-                // 没有该用户
-                throw new UserNotExistException();
+        try {
+            if (token == null) {
+                // 没有token, 未登录
+                throw new NoLoginException();
+            } else {
+                String userId = JwtUtils.getUserID(token);
+                log.info("userId:" + userId );
+                log.info("userService:" + userService);
+                long count = userService.count(new QueryWrapper<User>().eq("id", userId));
+                if (count != 1) {
+                    // 没有该用户
+                    throw new UserNotExistException();
+                }
+
+                // 如果不通过验证会抛出异常TokenUnavailableException
+                JwtUtils.verifyToken(token, userId);
+                // 验证通过则放行
+                return true;
             }
-
-            // 如果不通过验证会抛出异常TokenUnavailableException
-            JwtUtils.verifyToken(token, userId);
+        } catch (NoLoginException | TokenUnavailableException | UserNotExistException e) {
+            e.printStackTrace();
+            response.setStatus(401);
         }
-
-        return true;
+        // 到这里是遇到异常的，就不放行，直接返回401状态的http响应
+        return false;
     }
 
     @Override

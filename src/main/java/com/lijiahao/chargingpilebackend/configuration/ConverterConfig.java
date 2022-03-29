@@ -1,6 +1,7 @@
 package com.lijiahao.chargingpilebackend.configuration;
 
 import com.lijiahao.chargingpilebackend.controller.converters.StringToMessageRequestConverter;
+import com.lijiahao.chargingpilebackend.controller.converters.StringToModifyUserInfoRequestConverter;
 import com.lijiahao.chargingpilebackend.controller.interceptor.JwtAuthenticationInterceptor;
 import com.lijiahao.chargingpilebackend.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +17,16 @@ public class ConverterConfig implements WebMvcConfigurer {
     StringToMessageRequestConverter messageRequestConverter;
 
     @Autowired
+    StringToModifyUserInfoRequestConverter modifyUserInfoRequestConverter;
+
+    @Autowired
     UserServiceImpl userService;
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
         WebMvcConfigurer.super.addFormatters(registry);
         registry.addConverter(messageRequestConverter);
+        registry.addConverter(modifyUserInfoRequestConverter);
     }
 
 

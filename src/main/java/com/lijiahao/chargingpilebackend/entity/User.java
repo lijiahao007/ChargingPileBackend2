@@ -46,6 +46,9 @@ public class User implements Serializable {
     @ApiModelProperty("用户信息更新时间")
     private LocalDateTime updateTime;
 
+    @ApiModelProperty("用户个性签名")
+    private String remark;
+
     public User() {
     }
 
@@ -77,6 +80,14 @@ public class User implements Serializable {
         this.password = password;
         this.name = name;
         this.avatarUrl = avatarUrl;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 
     public Integer getId() {
