@@ -1,4 +1,4 @@
-package com.lijiahao.chargingpilebackend.controller.RequestParam;
+package com.lijiahao.chargingpilebackend.controller.requestparam;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

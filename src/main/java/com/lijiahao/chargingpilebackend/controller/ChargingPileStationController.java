@@ -4,8 +4,8 @@ package com.lijiahao.chargingpilebackend.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lijiahao.chargingpilebackend.controller.RequestParam.LatLngBound;
-import com.lijiahao.chargingpilebackend.controller.RequestParam.StationInfoRequest;
+import com.lijiahao.chargingpilebackend.controller.requestparam.LatLngBound;
+import com.lijiahao.chargingpilebackend.controller.requestparam.StationInfoRequest;
 import com.lijiahao.chargingpilebackend.entity.*;
 import com.lijiahao.chargingpilebackend.service.impl.*;
 import com.lijiahao.chargingpilebackend.utils.FileUtils;
@@ -183,6 +183,7 @@ public class ChargingPileStationController {
                 .body(resource);
     }
 
+    @ApiOperation(value = "为某个充电站的收藏数量+1")
     @GetMapping("/addStationCollection")
     @Transactional
     public String addStationCollection(@RequestParam("stationId") int stationId) throws JsonProcessingException {
@@ -192,6 +193,7 @@ public class ChargingPileStationController {
         return new ObjectMapper().writeValueAsString("success");
     }
 
+    @ApiOperation(value = "为某个充电站的收藏数量-1")
     @GetMapping("/subtractStationCollection")
     @Transactional
     public String substractStationCollection(@RequestParam("stationId") int stationId) throws JsonProcessingException {
@@ -202,6 +204,7 @@ public class ChargingPileStationController {
     }
 
 
+    @ApiOperation(value = "上传充电站相关信息")
     @PostMapping("/uploadStationInfo")
     @Transactional
     public String uploadStationInfo(@RequestBody StationInfoRequest stationInfoRequest) throws JsonProcessingException, Exception {
@@ -247,7 +250,7 @@ public class ChargingPileStationController {
         return new ObjectMapper().writeValueAsString(stationId);
     }
 
-
+    @ApiOperation(value = "上传充电站图片")
     @PostMapping("/uploadStationPic")
     @Transactional
     public String uploadStationPic(@RequestParam("stationPic") List<MultipartFile> files, @RequestParam("stationId") String stationId) throws Exception {

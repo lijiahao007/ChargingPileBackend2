@@ -2,6 +2,7 @@ package com.lijiahao.chargingpilebackend.utils;
 
 
 import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,5 +39,14 @@ public class FileUtils {
                 outputStream.close();
             }
         }
+    }
+
+    public static File writeMultipartFileToLocal(MultipartFile file, String path, String prefix) throws IOException {
+        byte[] fileBytes = file.getBytes();
+        String fileName = file.getOriginalFilename();
+        assert fileName != null;
+        File outputFile = File.createTempFile(prefix, FileUtils.getFileSuffix(fileName), new File(path));
+        FileUtils.writeByteArrayToFile(outputFile, fileBytes);
+        return outputFile;
     }
 }

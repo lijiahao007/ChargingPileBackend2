@@ -1,4 +1,4 @@
-package com.lijiahao.chargingpilebackend.controller.RequestParam;
+package com.lijiahao.chargingpilebackend.controller.requestparam;
 
 import com.lijiahao.chargingpilebackend.entity.ChargingPile;
 import com.lijiahao.chargingpilebackend.entity.ChargingPileStation;
@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
