@@ -34,6 +34,9 @@ public class OpenDayInWeek implements Serializable {
         this.stationId = stationId;
     }
 
+    public OpenDayInWeek() {
+    }
+
     public Integer getId() {
         return id;
     }

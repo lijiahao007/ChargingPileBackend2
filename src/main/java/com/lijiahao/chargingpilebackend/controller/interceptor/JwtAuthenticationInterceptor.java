@@ -9,9 +9,6 @@ import com.lijiahao.chargingpilebackend.entity.User;
 import com.lijiahao.chargingpilebackend.service.impl.UserServiceImpl;
 import com.lijiahao.chargingpilebackend.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -28,7 +25,6 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
     public JwtAuthenticationInterceptor(UserServiceImpl userService) {
         this.userService = userService;
     }
-
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -49,17 +45,17 @@ public class JwtAuthenticationInterceptor implements HandlerInterceptor {
                 return true;
             }
         }
-        log.info("method->" + method.getName());
-        log.info("是否存在PassToken注解" + method.isAnnotationPresent(PassToken.class));
-        log.info("被JWT拦截验证了！！！！！！ token = " + token);
+        log.warn("method->" + method.getName());
+        log.warn("是否存在PassToken注解" + method.isAnnotationPresent(PassToken.class));
+        log.warn("被JWT拦截验证了！！！！！！ token = " + token);
         try {
             if (token == null) {
                 // 没有token, 未登录
                 throw new NoLoginException();
             } else {
                 String userId = JwtUtils.getUserID(token);
-                log.info("userId:" + userId );
-                log.info("userService:" + userService);
+                log.warn("userId:" + userId );
+                log.warn("userService:" + userService);
                 long count = userService.count(new QueryWrapper<User>().eq("id", userId));
                 if (count != 1) {
                     // 没有该用户

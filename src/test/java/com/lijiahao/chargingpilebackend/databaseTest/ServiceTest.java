@@ -42,19 +42,19 @@ public class ServiceTest {
     public void saveTest() {
         List<User> userList = asList(new User("lijiahao", "123456"), new User("lijiahao1", "123456"), new User("lijiahao2", "123456"));
         boolean res = userService.saveBatch(userList);
-        log.info("saveTest: {}", res);
+        log.warn("saveTest: {}", res);
         List<User> list = userService.list(new QueryWrapper<User>()
                 .like("name", "Dan"));
 
         for (User user : list) {
-            log.info("user: {}", user);
+            log.warn("user: {}", user);
         }
     }
 
     @Test
     public void getTest() {
         User user = userService.getOne(new QueryWrapper<User>().select("MAX(id) as id"));
-        log.info("user: {}, {}", user, user.getId());
+        log.warn("user: {}, {}", user, user.getId());
     }
 
     @Test

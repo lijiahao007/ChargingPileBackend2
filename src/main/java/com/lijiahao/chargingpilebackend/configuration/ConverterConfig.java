@@ -33,7 +33,14 @@ public class ConverterConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new JwtAuthenticationInterceptor(userService))
-                .addPathPatterns("/**");
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/swagger-ui/*",
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                        "/v2/**",
+                        "/v3/**",
+                        "/swagger-ui.html"); // 跳过swagger
     }
 
     @Bean

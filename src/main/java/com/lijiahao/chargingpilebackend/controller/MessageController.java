@@ -63,7 +63,7 @@ public class MessageController {
                 request.getText(),
                 "NOT_READ"
         );
-        log.info("message!!!!!" + message.toString());
+        log.warn("message!!!!!" + message.toString());
         messageService.save(message);
         return new ObjectMapper().writeValueAsString("success");
     }

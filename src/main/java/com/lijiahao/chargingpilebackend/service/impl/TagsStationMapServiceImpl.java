@@ -1,6 +1,7 @@
 package com.lijiahao.chargingpilebackend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.lijiahao.chargingpilebackend.entity.ChargingPileStation;
 import com.lijiahao.chargingpilebackend.entity.Tags;
 import com.lijiahao.chargingpilebackend.entity.TagsStationMap;
 import com.lijiahao.chargingpilebackend.mapper.TagsStationMapMapper;
@@ -27,10 +28,12 @@ public class TagsStationMapServiceImpl extends ServiceImpl<TagsStationMapMapper,
 
 
     private final TagsServiceImpl tagsService;
+    private final ChargingPileStationServiceImpl chargingPileStationService;
 
     @Autowired
-    public TagsStationMapServiceImpl(TagsServiceImpl tagsService) {
+    public TagsStationMapServiceImpl(TagsServiceImpl tagsService, ChargingPileStationServiceImpl chargingPileStationService) {
         this.tagsService = tagsService;
+        this.chargingPileStationService = chargingPileStationService;
     }
 
     // 返回每个站点的所有标签
@@ -38,6 +41,20 @@ public class TagsStationMapServiceImpl extends ServiceImpl<TagsStationMapMapper,
         List<TagsStationMap> list =  list(new QueryWrapper<TagsStationMap>());
         Map<Integer, List<Tags>> map = new HashMap<>();
         list.forEach((TagsStationMap tagsStationMap) -> {
+            Tags tag = tagsService.getOne(new QueryWrapper<Tags>().eq("id", tagsStationMap.getTagsId()));
+            if(map.containsKey(tagsStationMap.getStationId())) {
+                map.get(tagsStationMap.getStationId()).add(tag);
+            } else {
+                map.put(tagsStationMap.getStationId(), new ArrayList<Tags>(){{add(tag);}});
+            }
+        });
+        return map;
+    }
+
+
+    public Map<Integer, List<Tags>> getStationTags(List<Integer> stationIds) {
+        Map<Integer, List<Tags>> map = new HashMap<>();
+        list(new QueryWrapper<TagsStationMap>().in("station_id", stationIds)).forEach(tagsStationMap -> {
             Tags tag = tagsService.getOne(new QueryWrapper<Tags>().eq("id", tagsStationMap.getTagsId()));
             if(map.containsKey(tagsStationMap.getStationId())) {
                 map.get(tagsStationMap.getStationId()).add(tag);

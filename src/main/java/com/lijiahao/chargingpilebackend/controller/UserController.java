@@ -62,7 +62,7 @@ public class UserController {
     @PassToken
     @PostMapping("/login")
     public LoginResponse login(@RequestBody AccountPwdRequest request) {
-        log.info("account:{},password:{}", request.getAccount(), request.getPassword());
+        log.warn("account:{},password:{}", request.getAccount(), request.getPassword());
         LoginResponse response = new LoginResponse();
 
         // 1. 根据账号获取用户密码
@@ -94,7 +94,7 @@ public class UserController {
     @PassToken
     @PostMapping("/signup")
     public SignUpResponse signUp(@RequestBody AccountPwdRequest request) {
-        log.info("account:{},password:{}", request.getAccount(), request.getPassword());
+        log.warn("account:{},password:{}", request.getAccount(), request.getPassword());
         SignUpResponse response = new SignUpResponse();
 
         // 1. 检查是否已有该用户
@@ -119,7 +119,7 @@ public class UserController {
         return response;
     }
 
-
+    @ApiOperation("获取用户信息")
     @GetMapping("/userInfo")
     public UserInfoResponse getUserInfo(@RequestParam String userId, HttpServletRequest request) {
         UserInfoResponse response = new UserInfoResponse();
@@ -146,7 +146,7 @@ public class UserController {
         return response;
     }
 
-
+    @ApiOperation("获取用户头像")
     @GetMapping("/userAvatar")
     public ResponseEntity<Resource> getUserAvatar(@RequestParam("url") String url) {
         // 根据url返回具体的图片
@@ -161,7 +161,7 @@ public class UserController {
                 .body(resource);
     }
 
-
+    @ApiOperation("修改用户密码")
     @PostMapping("/modifyPwd")
     public String modifyPwd(@RequestBody ModifyPwdRequest request) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
@@ -177,6 +177,7 @@ public class UserController {
         }
     }
 
+    @ApiOperation("修改用户拓展信息")
     @PostMapping("/modifyExtendInfo")
     @Transactional
     public String modifyExtendInfo(@RequestBody ModifyExtendInfoRequest request) throws JsonProcessingException {
@@ -200,12 +201,13 @@ public class UserController {
         return mapper.writeValueAsString("success");
     }
 
+    @ApiOperation("修改用户信息（修改图像）")
     @PostMapping("/modifyUserInfo")
     @Transactional
-    // 返回图片url
     public String modifyUserInfo(@RequestParam("avatar") MultipartFile file,
                                  @RequestParam("request")ModifyUserInfoRequest request,
                                  HttpServletRequest httpServletRequest) throws IOException {
+        // 返回图片url
         ObjectMapper mapper = new ObjectMapper();
         User user = userService.getOne(new QueryWrapper<User>().eq("id", request.getUserId()));
         File outputFile =  FileUtils.writeMultipartFileToLocal(file, "C:\\Users\\10403\\Desktop\\imgs\\user_pic", "user_pic_");
@@ -217,6 +219,7 @@ public class UserController {
         return mapper.writeValueAsString(url);
     }
 
+    @ApiOperation("修改用户信息（不修改头像）")
     @PostMapping("/modifyUserInfoWithoutPic")
     @Transactional
     public String modifyUserInfo(@RequestBody ModifyUserInfoRequest request) throws IOException {

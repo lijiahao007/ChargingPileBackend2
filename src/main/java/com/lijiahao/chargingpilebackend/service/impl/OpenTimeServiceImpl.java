@@ -1,5 +1,6 @@
 package com.lijiahao.chargingpilebackend.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lijiahao.chargingpilebackend.entity.OpenTime;
 import com.lijiahao.chargingpilebackend.mapper.OpenTimeMapper;
 import com.lijiahao.chargingpilebackend.service.IOpenTimeService;
@@ -24,6 +25,19 @@ public class OpenTimeServiceImpl extends ServiceImpl<OpenTimeMapper, OpenTime> i
     public Map<Integer, List<OpenTime>> getStationOpenTime() {
         HashMap<Integer, List<OpenTime>> map = new HashMap<>();
         list().forEach(openTime -> {
+            int stationId = openTime.getStationId();
+            if(map.containsKey(stationId)) {
+                map.get(stationId).add(openTime);
+            } else {
+                map.put(stationId, new ArrayList<OpenTime>(){{add(openTime);}});
+            }
+        });
+        return map;
+    }
+
+    public Map<Integer, List<OpenTime>> getStationOpenTime(List<Integer> stationIds) {
+        HashMap<Integer, List<OpenTime>> map = new HashMap<>();
+        list(new QueryWrapper<OpenTime>().in("station_id", stationIds)).forEach(openTime -> {
             int stationId = openTime.getStationId();
             if(map.containsKey(stationId)) {
                 map.get(stationId).add(openTime);

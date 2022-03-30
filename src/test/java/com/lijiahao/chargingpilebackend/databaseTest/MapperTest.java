@@ -30,7 +30,7 @@ public class MapperTest {
     @Test
     public void selcetTest(){
         List<User> userList = userMapper.selectList(null);
-        log.info("查询结果： userList = {}", userList);
+        log.warn("查询结果： userList = {}", userList);
         assertEquals(userList.size(), 2);
     }
 
@@ -39,11 +39,11 @@ public class MapperTest {
     public void insertTest() {
         User user = new User("13535853644 ", "lijiahao");
         int res = userMapper.insert(user);
-        log.info("插入结果： res = {}  插入主键={}", res, user.getId());
-        log.info("插入User, user = {}", user);
+        log.warn("插入结果： res = {}  插入主键={}", res, user.getId());
+        log.warn("插入User, user = {}", user);
         assertEquals(res, 1);
         List<User> users = userMapper.selectList(null);
-        log.info("查询结果： users = {}", users);
+        log.warn("查询结果： users = {}", users);
     }
 
 
@@ -51,9 +51,9 @@ public class MapperTest {
     @Transactional
     public void updateTest() {
         int res = userMapper.updateById(new User(1, "13535853647 ", "lijiahao", null));
-        log.info("更新结果： res = {}", res);
+        log.warn("更新结果： res = {}", res);
         List<User> users = userMapper.selectList(null);
-        log.info("查询结果： users = {}", users);
+        log.warn("查询结果： users = {}", users);
         assertEquals(res, 1);
     }
 
@@ -61,9 +61,9 @@ public class MapperTest {
     @Transactional
     public void deleteTest() {
         int res = userMapper.deleteById(1);
-        log.info("删除结果： res = {}", res);
+        log.warn("删除结果： res = {}", res);
         List<User> users = userMapper.selectList(null);
-        log.info("查询结果： users = {}", users);
+        log.warn("查询结果： users = {}", users);
         assertEquals(res, 1);
     }
 

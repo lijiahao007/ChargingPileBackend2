@@ -1,9 +1,11 @@
 package com.lijiahao.chargingpilebackend.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lijiahao.chargingpilebackend.service.IChargingPileService;
 import com.lijiahao.chargingpilebackend.entity.ChargingPile;
 import com.lijiahao.chargingpilebackend.mapper.ChargingPileMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,6 +24,13 @@ import java.util.Map;
 @Service
 public class ChargingPileServiceImpl extends ServiceImpl<ChargingPileMapper, ChargingPile> implements IChargingPileService {
 
+    private final ChargingPileStationServiceImpl chargingPileStationService;
+
+    @Autowired
+    public ChargingPileServiceImpl(ChargingPileStationServiceImpl chargingPileStationService) {
+        this.chargingPileStationService = chargingPileStationService;
+    }
+
     public Map<Integer, List<ChargingPile>>  getStationChargingPile() {
         HashMap<Integer, List<ChargingPile>> map = new HashMap<>();
         list().forEach(chargingPile -> {
@@ -35,5 +44,17 @@ public class ChargingPileServiceImpl extends ServiceImpl<ChargingPileMapper, Cha
         return map;
     }
 
+    public Map<Integer, List<ChargingPile>>  getStationChargingPile(List<Integer> stationIds) {
+        HashMap<Integer, List<ChargingPile>> map = new HashMap<>();
+        list(new QueryWrapper<ChargingPile>().in("station_id", stationIds)).forEach(chargingPile -> {
+            int stationId = chargingPile.getStationId();
+            if(map.containsKey(stationId)) {
+                map.get(stationId).add(chargingPile);
+            } else {
+                map.put(stationId, new ArrayList<ChargingPile>(){{add(chargingPile);}});
+            }
+        });
+        return map;
+    }
 
 }

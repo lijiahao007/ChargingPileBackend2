@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lijiahao.chargingpilebackend.controller.requestparam.LatLngBound;
 import com.lijiahao.chargingpilebackend.controller.requestparam.StationInfoRequest;
+import com.lijiahao.chargingpilebackend.controller.response.StationAllInfo;
 import com.lijiahao.chargingpilebackend.entity.*;
 import com.lijiahao.chargingpilebackend.service.impl.*;
 import com.lijiahao.chargingpilebackend.utils.FileUtils;
@@ -155,6 +156,39 @@ public class ChargingPileStationController {
         return openTimeService.getStationOpenTime();
     }
 
+    @ApiOperation("获取每个站点开放的日子")
+    @GetMapping("/getStationOpenDay")
+    public Map<Integer, List<OpenDayInWeek>> getStationOpenDay() {return openDayInWeekService.getOpenDayInWeek(); }
+
+    @ApiOperation("获取所有充电站的所有信息")
+    @GetMapping("/getStationInfo")
+    public StationAllInfo getStationInfo(HttpServletRequest request) {
+        List<ChargingPileStation> stations = chargingPileStationService.list();
+        Map<Integer, List<Tags>> tagMap = tagsStationMapService.getStationTags();
+        Map<Integer, List<ChargingPile>> pileMap = chargingPileService.getStationChargingPile();
+        Map<Integer, List<OpenTime>> openTimeMap = openTimeService.getStationOpenTime();
+        Map<Integer, List<OpenDayInWeek>> openDayInWeekMap = openDayInWeekService.getOpenDayInWeek();
+        Map<Integer, List<String>> picMap = stationPicService.getStationPicUrl();
+        picMap = stationPicService.getStationPicUrlWithPrefix(picMap, request);
+        return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap);
+    }
+
+    @ApiOperation("获取某个用户相关的所有充电站的所有信息")
+    @GetMapping("/getStationInfoByUserId")
+    public StationAllInfo getStationInfoByUserId(@RequestParam("userId") int userId, HttpServletRequest request) {
+        List<ChargingPileStation> stations = chargingPileStationService.list(new QueryWrapper<ChargingPileStation>().eq("user_id", userId));
+        List<Integer> stationIds = chargingPileStationService.getUserStation(userId);
+        Map<Integer, List<Tags>> tagMap = tagsStationMapService.getStationTags(stationIds);
+        Map<Integer, List<ChargingPile>> pileMap = chargingPileService.getStationChargingPile(stationIds);
+        Map<Integer, List<OpenTime>> openTimeMap = openTimeService.getStationOpenTime(stationIds);
+        Map<Integer, List<OpenDayInWeek>> openDayInWeekMap = openDayInWeekService.getOpenDayInWeek(stationIds);
+        Map<Integer, List<String>> picMap = stationPicService.getStationPicUrl(stationIds);
+        picMap = stationPicService.getStationPicUrlWithPrefix(picMap, request);
+        return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap);
+    }
+
+
+
     @ApiOperation("获取每个站点对应的图片url")
     @GetMapping("/getStationPicUrl")
     public List<String> getStationPic(HttpServletRequest request, @RequestParam("stationId") int stationId) {
@@ -216,12 +250,12 @@ public class ChargingPileStationController {
         List<ChargingPile> chargingPiles = stationInfoRequest.getChargingPiles();
         String userId = stationInfoRequest.getUserId();
 
-        log.info("接收到的站点信息：" + station);
-        log.info("接收到的开放时间信息：" + openDayInWeek);
-        log.info("接收到的开放时间信息：" + openTime);
-        log.info("接收到的开放时间收费信息：" + openTimeCharge);
-        log.info("接收到的充电桩信息：" + chargingPiles);
-        log.info("接收到的用户id：" + userId);
+        log.warn("接收到的站点信息：" + station);
+        log.warn("接收到的开放时间信息：" + openDayInWeek);
+        log.warn("接收到的开放时间信息：" + openTime);
+        log.warn("接收到的开放时间收费信息：" + openTimeCharge);
+        log.warn("接收到的充电桩信息：" + chargingPiles);
+        log.warn("接收到的用户id：" + userId);
 
         // 将station保存到数据库
         station.setUserId(Integer.valueOf(userId));
@@ -262,7 +296,7 @@ public class ChargingPileStationController {
             FileUtils.writeByteArrayToFile(outputFile, fileBytes);
             String path = outputFile.getAbsolutePath();
             stationPicService.save(new StationPic(path, Integer.valueOf(stationId)));
-            log.info("上传图片成功");
+            log.warn("上传图片成功");
         }
         return new ObjectMapper().writeValueAsString("success filesize=" + files.size());
     }
