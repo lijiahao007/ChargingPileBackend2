@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -22,6 +23,7 @@ import lombok.Data;
 @TableName("charging_pile")
 @ApiModel(value = "ChargingPile对象", description = "")
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class ChargingPile implements Serializable {
 
@@ -45,8 +47,6 @@ public class ChargingPile implements Serializable {
     @ApiModelProperty("充电桩当前状态")
     private String state;
 
-    public ChargingPile() {
-    }
 
     public ChargingPile(String electricType, Float powerRate, Integer pileNum, Integer stationId) {
         this.electricType = electricType;

@@ -11,6 +11,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -24,6 +25,7 @@ import lombok.Data;
 @ApiModel(value = "ChargingPileStation对象", description = "")
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class ChargingPileStation implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -81,8 +83,6 @@ public class ChargingPileStation implements Serializable {
         this.remark = remark;
     }
 
-    public ChargingPileStation() {
-    }
 
     public Integer getId() {
         return id;

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -17,6 +18,7 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @TableName("user_extend")
 @ApiModel(value = "UserExtend对象", description = "")
+@NoArgsConstructor
 public class UserExtend implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -31,9 +33,6 @@ public class UserExtend implements Serializable {
     private String value;
 
     private Integer userId;
-
-    public UserExtend() {
-    }
 
     public Integer getId() {
         return id;

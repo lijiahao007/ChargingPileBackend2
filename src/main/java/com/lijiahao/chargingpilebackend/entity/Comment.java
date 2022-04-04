@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -16,6 +17,7 @@ import io.swagger.annotations.ApiModelProperty;
  * @since 2022-03-14
  */
 @ApiModel(value = "Comment对象", description = "")
+@NoArgsConstructor
 public class Comment implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -41,9 +43,6 @@ public class Comment implements Serializable {
     private Integer userId;
 
     private Integer stationId;
-
-    public Comment() {
-    }
 
     public Integer getId() {
         return id;

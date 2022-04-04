@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -17,6 +18,7 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @TableName("open_day_in_week")
 @ApiModel(value = "OpenDayInWeek对象", description = "")
+@NoArgsConstructor
 public class OpenDayInWeek implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -34,8 +36,6 @@ public class OpenDayInWeek implements Serializable {
         this.stationId = stationId;
     }
 
-    public OpenDayInWeek() {
-    }
 
     public Integer getId() {
         return id;

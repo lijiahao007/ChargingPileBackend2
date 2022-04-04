@@ -22,4 +22,10 @@ public class TimeUtils {
         ZoneId zone = ZoneId.of("Asia/Shanghai");
         return LocalDateTime.ofInstant(instant, zone);
     }
+
+    public static long localDateTimeToLong(LocalDateTime localDateTime) {
+        ZoneId zone = ZoneId.of("Asia/Shanghai");
+        Instant instant = localDateTime.atZone(zone).toInstant();
+        return instant.toEpochMilli();
+    }
 }

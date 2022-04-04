@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
  */
 @ApiModel(value = "User对象", description = "")
 @AllArgsConstructor
+@NoArgsConstructor
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -48,9 +49,6 @@ public class User implements Serializable {
 
     @ApiModelProperty("用户个性签名")
     private String remark;
-
-    public User() {
-    }
 
     public User(Integer id, String phone, String name, String avatarUrl) {
         this.id = id;

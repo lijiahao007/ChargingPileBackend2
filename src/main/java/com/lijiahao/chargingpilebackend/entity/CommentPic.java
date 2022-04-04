@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -17,6 +18,7 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @TableName("comment_pic")
 @ApiModel(value = "CommentPic对象", description = "")
+@NoArgsConstructor
 public class CommentPic implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -28,9 +30,6 @@ public class CommentPic implements Serializable {
     private String url;
 
     private Integer commentId;
-
-    public CommentPic() {
-    }
 
     public Integer getId() {
         return id;

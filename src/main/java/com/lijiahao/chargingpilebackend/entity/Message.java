@@ -2,20 +2,26 @@ package com.lijiahao.chargingpilebackend.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import com.lijiahao.chargingpilebackend.controller.requestparam.MessageRequest;
+import com.lijiahao.chargingpilebackend.utils.TimeUtils;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author lijiahao
  * @since 2022-03-24
  */
 @ApiModel(value = "Message对象", description = "")
+@NoArgsConstructor
 public class Message implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -44,6 +50,7 @@ public class Message implements Serializable {
     @ApiModelProperty("消息状态")
     private String state;
 
+
     public Message(String uuid, LocalDateTime createtime, String type, Integer sendUserId, Integer targetUserId, String text, String state) {
         this.uuid = uuid;
         this.createtime = createtime;
@@ -52,6 +59,18 @@ public class Message implements Serializable {
         this.targetUserId = targetUserId;
         this.text = text;
         this.state = state;
+    }
+
+
+    public MessageRequest toMessageRequest() {
+        MessageRequest messageRequest = new MessageRequest();
+        messageRequest.setUuid(this.uuid);
+        messageRequest.setType(this.type);
+        messageRequest.setSendUserId(String.valueOf(this.sendUserId));
+        messageRequest.setTargetUserId(String.valueOf(this.targetUserId));
+        messageRequest.setText(this.text);
+        messageRequest.setTimeStamp(TimeUtils.localDateTimeToLong(this.createtime));
+        return messageRequest;
     }
 
     public Integer getId() {
@@ -121,14 +140,14 @@ public class Message implements Serializable {
     @Override
     public String toString() {
         return "Message{" +
-        "id=" + id +
-        ", uuid=" + uuid +
-        ", createtime=" + createtime +
-        ", type=" + type +
-        ", sendUserId=" + sendUserId +
-        ", targetUserId=" + targetUserId +
-        ", text=" + text +
-        ", state=" + state +
-        "}";
+                "id=" + id +
+                ", uuid=" + uuid +
+                ", createtime=" + createtime +
+                ", type=" + type +
+                ", sendUserId=" + sendUserId +
+                ", targetUserId=" + targetUserId +
+                ", text=" + text +
+                ", state=" + state +
+                "}";
     }
 }

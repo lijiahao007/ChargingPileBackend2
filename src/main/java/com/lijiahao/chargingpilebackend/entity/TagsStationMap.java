@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -17,6 +18,7 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @TableName("tags_station_map")
 @ApiModel(value = "TagsStationMap对象", description = "")
+@NoArgsConstructor
 public class TagsStationMap implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -30,8 +32,6 @@ public class TagsStationMap implements Serializable {
     @ApiModelProperty("标签ID")
     private Integer tagsId;
 
-    public TagsStationMap() {
-    }
 
     public Integer getId() {
         return id;

@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -16,6 +17,7 @@ import io.swagger.annotations.ApiModelProperty;
  * @since 2022-03-14
  */
 @ApiModel(value = "Order对象", description = "")
+@NoArgsConstructor
 public class Order implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -40,9 +42,6 @@ public class Order implements Serializable {
 
     @ApiModelProperty("订单用户")
     private Integer userId;
-
-    public Order() {
-    }
 
     public Integer getId() {
         return id;

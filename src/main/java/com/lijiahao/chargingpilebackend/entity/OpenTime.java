@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * <p>
@@ -20,6 +21,7 @@ import lombok.AllArgsConstructor;
 @TableName("open_time")
 @ApiModel(value = "OpenTime对象", description = "")
 @AllArgsConstructor
+@NoArgsConstructor
 public class OpenTime implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -38,8 +40,6 @@ public class OpenTime implements Serializable {
 
     private Integer stationId;
 
-    public OpenTime() {
-    }
 
     public OpenTime(LocalTime beginTime, LocalTime endTime, Float electricCharge, Integer stationId) {
         this.beginTime = beginTime;

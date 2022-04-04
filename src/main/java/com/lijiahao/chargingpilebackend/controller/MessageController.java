@@ -54,6 +54,16 @@ public class MessageController {
     @PostMapping("/sendTextMessage")
     public String sendTextMessage(@RequestBody MessageRequest request) throws JsonProcessingException {
         LocalDateTime time = TimeUtils.longToLocalDateTime(request.getTimeStamp());
+
+        String state = "NOT_READ";
+        // 查看是否该用户是否在线，在则推送消息给他
+        WebSocketServer server =  WebSocketServer.getWebSocketServer(request.getTargetUserId());
+        if (server != null) {
+            state = "READ";
+            server.sendMessage(request);
+        }
+
+        // 将消息存储在数据库中
         Message message = new Message(
                 request.getUuid(),
                 time,
@@ -61,10 +71,12 @@ public class MessageController {
                 Integer.valueOf(request.getSendUserId()),
                 Integer.valueOf(request.getTargetUserId()),
                 request.getText(),
-                "NOT_READ"
+                state
         );
         log.warn("message!!!!!" + message.toString());
         messageService.save(message);
+
+
         return new ObjectMapper().writeValueAsString("success");
     }
 
@@ -73,6 +85,19 @@ public class MessageController {
     @PostMapping("/sendImageMessage")
     public String sendImageMessage(@RequestParam("pic") MultipartFile picture, @RequestParam("messageRequest") MessageRequest request, HttpServletRequest httpServletRequest) throws IOException {
         File file = FileUtils.writeMultipartFileToLocal(picture, "C:\\Users\\10403\\Desktop\\imgs\\chat_pic\\", "chat_pic");
+
+        String path = "/message/getChatImage?url=" + file.getAbsolutePath(); // 具体的服务器地址与端口号在客户端自行配置
+        String state = "NOT_READ";
+
+        // 查看目标用户是否在线，如果在则将消息发送给他
+        WebSocketServer server = WebSocketServer.getWebSocketServer(request.getTargetUserId());
+        if (server != null) {
+            state = "READ";
+            request.setText(path); // 将text修改成remoteUrl后，发送给目标用户。
+            server.sendMessage(request);
+        }
+
+        // 将消息存储在数据库中
         Message message = new Message(
                 request.getUuid(),
                 TimeUtils.longToLocalDateTime(request.getTimeStamp()),
@@ -80,10 +105,9 @@ public class MessageController {
                 Integer.valueOf(request.getSendUserId()),
                 Integer.valueOf(request.getTargetUserId()),
                 file.getPath(),
-                "NOT_READ");
+                state);
         messageService.save(message);
 
-        String path = "http://" + httpServletRequest.getServerName() + ":" + httpServletRequest.getServerPort() + "/message/getChatImage?url=" + file.getAbsolutePath();
         return new ObjectMapper().writeValueAsString(path);
     }
 
