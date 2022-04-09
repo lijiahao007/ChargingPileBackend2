@@ -15,7 +15,7 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ServiceTest {
     private static Logger log = LoggerFactory.getLogger(ServiceTest.class);
     private final UserServiceImpl userService;
@@ -23,18 +23,21 @@ public class ServiceTest {
     private final TagsStationMapServiceImpl tagsStationMapService;
     private final TagsServiceImpl tagsService;
     private final ChargingPileServiceImpl chargingPileService;
+    private final StationPicServiceImpl stationPicService;
     @Autowired
     public ServiceTest(
             UserServiceImpl userService,
             OpenTimeServiceImpl openTimeService,
             TagsStationMapServiceImpl tagsStationMapService,
             TagsServiceImpl tagsService,
-            ChargingPileServiceImpl chargingPileService) {
+            ChargingPileServiceImpl chargingPileService,
+            StationPicServiceImpl stationPicService){
         this.userService = userService;
         this.openTimeService = openTimeService;
         this.tagsStationMapService = tagsStationMapService;
         this.tagsService = tagsService;
         this.chargingPileService = chargingPileService;
+        this.stationPicService = stationPicService;
     }
 
     @Test
@@ -118,6 +121,16 @@ public class ServiceTest {
             System.out.println("value=" + value);
             System.out.println("\n\n\n");
         });
+    }
+
+    @Test
+    public void imagePathTest() {
+        List<StationPic> list = stationPicService.list();
+        String url = list.get(0).getUrl();
+        String target = "C:\\Users\\10403\\Desktop\\imgs\\station_pic\\station_1.jpg";
+        System.out.println(url.equals(target));
+        System.out.println(url);
+        System.out.println(target);
     }
 
 }

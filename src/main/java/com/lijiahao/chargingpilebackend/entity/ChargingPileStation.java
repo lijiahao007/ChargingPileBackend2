@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -54,9 +55,11 @@ public class ChargingPileStation implements Serializable {
     @ApiModelProperty("所属用户ID	")
     private Integer userId;
 
+    @JsonIgnore
     @ApiModelProperty("充电桩创建时间")
     private LocalDateTime createTime;
 
+    @JsonIgnore
     @ApiModelProperty("充电桩信息更新时间")
     private LocalDateTime updateTime;
 

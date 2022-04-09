@@ -15,5 +15,8 @@ public class regexTest {
             fileName = fileName.substring(1, fileName.length() - 1);
             System.out.println(fileName);
         }
+
+        System.out.println("C:\\Users\\10403\\Desktop\\imgs\\station_pic\\station_1.jpg");
+
     }
 }
