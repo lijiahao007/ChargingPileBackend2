@@ -6,10 +6,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lijiahao.chargingpilebackend.controller.requestparam.LatLngBound;
 import com.lijiahao.chargingpilebackend.controller.requestparam.StationInfoRequest;
+import com.lijiahao.chargingpilebackend.controller.response.ModifyStationResponse;
 import com.lijiahao.chargingpilebackend.controller.response.StationAllInfo;
 import com.lijiahao.chargingpilebackend.entity.*;
 import com.lijiahao.chargingpilebackend.service.impl.*;
 import com.lijiahao.chargingpilebackend.utils.FileUtils;
+import com.lijiahao.chargingpilebackend.utils.QRCodeUtils;
 import com.lijiahao.chargingpilebackend.utils.TimeUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -26,12 +28,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -94,7 +99,7 @@ public class ChargingPileStationController {
         int chargingStationId = chargingPileStationService.getOne(new QueryWrapper<ChargingPileStation>().select("max(id) as id")).getId();
 
         // 插入测试用的ChargingPile
-        chargingPileService.save(new ChargingPile("交流", 7f, 1, chargingStationId));
+        chargingPileService.save(new ChargingPile("交流", 7f, chargingStationId));
 
         // 插入测试用的OpenTime
         openTimeService.save(new OpenTime(LocalTime.of(0, 0), LocalTime.of(23, 59), 1.3f, chargingStationId));
@@ -177,6 +182,7 @@ public class ChargingPileStationController {
         picMap = stationPicService.getStationPicUrlWithPrefix(picMap, request);
         return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap);
     }
+
 
     @ApiOperation("获取某个用户相关的所有充电站的所有信息")
     @GetMapping("/getStationInfoByUserId")
@@ -283,6 +289,7 @@ public class ChargingPileStationController {
         for (ChargingPile chargingPile : chargingPiles) {
             chargingPile.setState("空闲");
             chargingPile.setStationId(stationId);
+            // TODO: 充电桩QRCode上传
             chargingPileService.save(chargingPile);
         }
         return mapper.writeValueAsString(stationId);
@@ -304,6 +311,75 @@ public class ChargingPileStationController {
         }
         return mapper.writeValueAsString("success filesize=" + files.size());
     }
+
+    @ApiOperation("上传新的充电站信息")
+    @PostMapping("uploadStationAllInfo")
+    @Transactional
+    public String uploadStationAllInfo(
+            @RequestParam("stationInfo") StationInfoRequest stationInfoRequest,
+            @RequestParam("stationPic") List<MultipartFile> files) throws IOException {
+        ChargingPileStation station = stationInfoRequest.getStation();
+        List<String> openDayInWeek = stationInfoRequest.getOpenDayInWeek();
+        List<String> openTime = stationInfoRequest.getOpenTime();
+        List<Float> openTimeCharge = stationInfoRequest.getOpenTimeCharge();
+        List<ChargingPile> chargingPiles = stationInfoRequest.getChargingPiles();
+        String userId = stationInfoRequest.getUserId();
+
+        log.warn("接收到的站点信息：" + station);
+        log.warn("接收到的开放时间信息：" + openDayInWeek);
+        log.warn("接收到的开放时间信息：" + openTime);
+        log.warn("接收到的开放时间收费信息：" + openTimeCharge);
+        log.warn("接收到的充电桩信息：" + chargingPiles);
+        log.warn("接收到的用户id：" + userId);
+
+        // 将station保存到数据库
+        station.setUserId(Integer.valueOf(userId));
+        station.setCollection(0); // 初始化收藏数
+        chargingPileStationService.save(station);
+        int stationId = station.getId();
+
+        // 将openDayWeek保存到数据库
+        for (String dayWeek : openDayInWeek) {
+            openDayInWeekService.save(new OpenDayInWeek(dayWeek, stationId));
+        }
+
+        // 将openTime保存到数据库
+        for (int i = 0; i < openTime.size(); i++) {
+            List<LocalTime> localTimes = TimeUtils.stringToLocalTime(openTime.get(i));
+            OpenTime time = new OpenTime(localTimes.get(0), localTimes.get(1), openTimeCharge.get(i), stationId);
+            openTimeService.save(time);
+        }
+
+        // 将chargingPiles保存到数据库
+        for (ChargingPile chargingPile : chargingPiles) {
+            chargingPile.setState("空闲");
+            chargingPile.setStationId(stationId);
+            chargingPileService.save(chargingPile);
+            // 生成对应的QRCode， 并保存
+            QRCodeContent content = new QRCodeContent(chargingPile.getStationId().toString(), chargingPile.getId().toString());
+            String prefix = chargingPile.getStationId() + "_" + chargingPile.getId() + "_";
+            File file = File.createTempFile(prefix, ".png", new File("C:\\Users\\10403\\Desktop\\imgs\\pile_qrcode"));
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            QRCodeUtils.getQRCode(content.getJson(), fileOutputStream);
+            chargingPile.setQrcodeUrl(file.getAbsolutePath());
+            chargingPileService.updateById(chargingPile);
+        }
+
+        for (MultipartFile file : files) {
+            if (file.getSize() == 0) break;
+            byte[] fileBytes = file.getBytes();
+            String fileName = file.getOriginalFilename();
+            assert fileName != null;
+            File outputFile = File.createTempFile("stationPic", FileUtils.getFileSuffix(fileName), new File("C:\\Users\\10403\\Desktop\\imgs\\station_pic\\"));
+            FileUtils.writeByteArrayToFile(outputFile, fileBytes);
+            String path = outputFile.getAbsolutePath();
+            stationPicService.save(new StationPic(path, stationId));
+            log.warn("上传图片成功");
+        }
+
+        return mapper.writeValueAsString("success");
+    }
+
 
     @ApiOperation(value = "修改充电站消息")
     @PostMapping("modifyStationInfo")
@@ -343,84 +419,65 @@ public class ChargingPileStationController {
         }
 
         // 4. 更新ChargingPile
-        chargingPileService.remove(new QueryWrapper<ChargingPile>().eq("station_id", stationId));
         List<ChargingPile> piles = stationInfoRequest.getChargingPiles();
-        piles.forEach(pile -> {
+        List<ChargingPile> newPiles = new ArrayList<>();
+        List<Integer> remainPilesId = new ArrayList<>();
+        for (ChargingPile pile : piles) {
+            if (pile.getId() == 0) {
+                newPiles.add(pile);
+            } else {
+                remainPilesId.add(pile.getId());
+            }
+        }
+        // 4.1 删除已存在但已经被用户删除的充电桩
+        if (remainPilesId.size() == 0) {
+            // 如果remainPilesId为空，说明充电桩全部被用户删除，需要删除所有充电桩
+            remainPilesId.add(0);
+        }
+        List<ChargingPile> deletePiles = chargingPileService.list(new QueryWrapper<ChargingPile>()
+                .eq("station_id", stationId)
+                .notIn("id", remainPilesId));
+        for (ChargingPile pile : deletePiles) {
+            if (pile.getQrcodeUrl() != null) {
+                File file = new File(pile.getQrcodeUrl());
+                if (file.exists()) file.delete();
+            }
+            chargingPileService.removeById(pile.getId());
+        }
+        // 4.2 添加新增的充电桩
+        for (ChargingPile pile : newPiles) {
+            pile.setState("空闲");
             pile.setStationId(stationId);
             chargingPileService.save(pile);
-        });
+            // 生成对应的QRCode， 并保存
+            QRCodeContent content = new QRCodeContent(pile.getStationId().toString(), pile.getId().toString());
+            String prefix = pile.getStationId() + "_" + pile.getId() + "_";
+            File file = File.createTempFile(prefix, ".png", new File("C:\\Users\\10403\\Desktop\\imgs\\pile_qrcode"));
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            QRCodeUtils.getQRCode(content.getJson(), fileOutputStream);
+            pile.setQrcodeUrl(file.getAbsolutePath());
+            chargingPileService.updateById(pile);
+        }
+        List<ChargingPile> curPiles = chargingPileService.list(new QueryWrapper<ChargingPile>().eq("station_id", stationId));
+
 
         // 5. 删除不在remotePicsUris中的图片
         List<StationPic> targetList = stationPicService.list(new QueryWrapper<StationPic>().eq("station_id", stationId).notIn("url", remotePicsUris));
         log.warn(targetList.toString());
         stationPicService.remove(new QueryWrapper<StationPic>()
-                        .eq("station_id", stationId)
-                        .notIn("url", remotePicsUris));
-
-
-        // 6. 添加新的照片
-        for (MultipartFile file : newImages) {
-            File localFile = FileUtils.writeMultipartFileToLocal(file, "C:\\Users\\10403\\Desktop\\imgs\\station_pic\\", "stationPic");
-            stationPicService.save(new StationPic(localFile.getAbsolutePath(), stationId));
-        }
-
-        return mapper.writeValueAsString("success");
-    }
-
-
-
-    @ApiOperation(value = "修改充电站消息")
-    @PostMapping("modifyStationInfoWithoutNewPic")
-    @Transactional
-    public String modifyStationInfo(@RequestParam("stationInfo") StationInfoRequest stationInfoRequest,
-                                    @RequestParam("remotePicsUris") List<String> remotePicsUris) throws IOException {
-
-        log.warn("stationInfo " + stationInfoRequest.toString());
-        log.warn("remotePicsUris " + remotePicsUris);
-
-        // 从表单获取的字符串会多了一对双引号！！！
-        for (int i = 0; i < remotePicsUris.size(); i++) {
-            remotePicsUris.set(i, remotePicsUris.get(i).replace("\\\\", "\\"));
-            remotePicsUris.set(i, remotePicsUris.get(i).replace("\"", ""));
-        }
-
-        // 1. 更新充电站信息
-        ChargingPileStation station = stationInfoRequest.getStation();
-        chargingPileStationService.updateById(station);
-
-        // 2. 更新OpenDayInWeek
-        Integer stationId = station.getId();
-        openDayInWeekService.remove(new QueryWrapper<OpenDayInWeek>().eq("station_id", stationId));
-        stationInfoRequest.getOpenDayInWeek().forEach(day ->
-                openDayInWeekService.save(new OpenDayInWeek(day, stationId)));
-
-        // 3. 更新OpenTime
-        openTimeService.remove(new QueryWrapper<OpenTime>().eq("station_id", stationId));
-        List<String> openTime = stationInfoRequest.getOpenTime();
-        List<Float> openTimeCharge = stationInfoRequest.getOpenTimeCharge();
-        for (int i = 0; i < openTime.size(); i++) {
-            List<LocalTime> localTimes = TimeUtils.stringToLocalTime(openTime.get(i));
-            OpenTime time = new OpenTime(localTimes.get(0), localTimes.get(1), openTimeCharge.get(i), stationId);
-            openTimeService.save(time);
-        }
-
-        // 4. 更新ChargingPile
-        chargingPileService.remove(new QueryWrapper<ChargingPile>().eq("station_id", stationId));
-        List<ChargingPile> piles = stationInfoRequest.getChargingPiles();
-        piles.forEach(pile -> {
-            pile.setStationId(stationId);
-            chargingPileService.save(pile);
-        });
-
-        // 5. 删除不在remotePicsUris中的图片
-        stationPicService.remove(new QueryWrapper<StationPic>()
                 .eq("station_id", stationId)
                 .notIn("url", remotePicsUris));
 
 
-        return mapper.writeValueAsString("success");
-    }
+        // 6. 添加新的照片
+        for (MultipartFile file : newImages) {
+            if (file.getSize() == 0) break; // 空文件不写入
+            File localFile = FileUtils.writeMultipartFileToLocal(file, "C:\\Users\\10403\\Desktop\\imgs\\station_pic\\", "stationPic");
+            stationPicService.save(new StationPic(localFile.getAbsolutePath(), stationId));
+        }
 
+        return mapper.writeValueAsString(new ModifyStationResponse(curPiles));
+    }
 
 }
 

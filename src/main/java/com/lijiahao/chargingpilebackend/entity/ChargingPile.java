@@ -38,20 +38,18 @@ public class ChargingPile implements Serializable {
     @ApiModelProperty("功率")
     private Float powerRate;
 
-    @ApiModelProperty(" 这种充电桩的数量")
-    private Integer pileNum;
-
     @ApiModelProperty("所属充电站")
     private Integer stationId;
 
     @ApiModelProperty("充电桩当前状态")
     private String state;
 
+    @ApiModelProperty("充电桩唯一标识二维码")
+    private String qrcodeUrl;
 
-    public ChargingPile(String electricType, Float powerRate, Integer pileNum, Integer stationId) {
+    public ChargingPile(String electricType, Float powerRate, Integer stationId) {
         this.electricType = electricType;
         this.powerRate = powerRate;
-        this.pileNum = pileNum;
         this.stationId = stationId;
     }
 
@@ -79,14 +77,6 @@ public class ChargingPile implements Serializable {
         this.powerRate = powerRate;
     }
 
-    public Integer getPileNum() {
-        return pileNum;
-    }
-
-    public void setPileNum(Integer pileNum) {
-        this.pileNum = pileNum;
-    }
-
     public Integer getStationId() {
         return stationId;
     }
@@ -111,15 +101,23 @@ public class ChargingPile implements Serializable {
         this.state = state;
     }
 
+    public String getQrcodeUrl() {
+        return qrcodeUrl;
+    }
+
+    public void setQrcodeUrl(String qrcodeUrl) {
+        this.qrcodeUrl = qrcodeUrl;
+    }
+
     @Override
     public String toString() {
         return "ChargingPile{" +
                 "id=" + id +
                 ", electriType=" + electricType +
                 ", powerRate=" + powerRate +
-                ", pileNum=" + pileNum +
                 ", stationId=" + stationId +
                 ", state=" + state +
+                ", qrcodeUrl=" + qrcodeUrl +
                 "}";
     }
 }
