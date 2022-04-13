@@ -8,6 +8,7 @@ import com.lijiahao.chargingpilebackend.controller.requestparam.LatLngBound;
 import com.lijiahao.chargingpilebackend.controller.requestparam.StationInfoRequest;
 import com.lijiahao.chargingpilebackend.controller.response.ModifyStationResponse;
 import com.lijiahao.chargingpilebackend.controller.response.StationAllInfo;
+import com.lijiahao.chargingpilebackend.controller.response.StationInfo;
 import com.lijiahao.chargingpilebackend.entity.*;
 import com.lijiahao.chargingpilebackend.service.impl.*;
 import com.lijiahao.chargingpilebackend.utils.FileUtils;
@@ -196,6 +197,20 @@ public class ChargingPileStationController {
         Map<Integer, List<String>> picMap = stationPicService.getStationPicUrl(stationIds);
         picMap = stationPicService.getStationPicUrlWithPrefix(picMap, request);
         return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap);
+    }
+
+
+    @ApiOperation("获取某个StationId的所有信息")
+    @GetMapping("/getStationInfoByStationId")
+    public StationInfo getStationInfoByStationId(@RequestParam("stationId") int stationId, HttpServletRequest request) {
+        ChargingPileStation station = chargingPileStationService.getById(stationId);
+        List<Tags> tags = tagsStationMapService.getTagsByStationId(stationId);
+        List<ChargingPile> chargingPiles = chargingPileService.getChargingPileByStationId(stationId);
+        List<OpenTime> openTimes = openTimeService.getOpenTimeByStationId(stationId);
+        List<OpenDayInWeek> openDayInWeeks = openDayInWeekService.getOpenDayInWeekByStationId(stationId);
+        List<String> picList = stationPicService.getStationPicUrlByStationId(stationId);
+        picList = stationPicService.getStationPicUrlWithPrefix(picList, request);
+        return new StationInfo(station, tags, chargingPiles, openTimes, openDayInWeeks, picList);
     }
 
 

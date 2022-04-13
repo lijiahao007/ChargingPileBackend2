@@ -28,6 +28,10 @@ import lombok.NoArgsConstructor;
 public class ChargingPile implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    public static final String STATE_USING="使用中";
+    public static final String STATE_FREE="空闲";
+    public static final String STATE_SUSPEND="暂停营业";
+
 
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;

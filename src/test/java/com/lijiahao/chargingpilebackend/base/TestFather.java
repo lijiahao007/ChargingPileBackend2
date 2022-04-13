@@ -9,4 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TestFather {
     public String firstName;
+
+    public static final String staticField = "staticField";
 }

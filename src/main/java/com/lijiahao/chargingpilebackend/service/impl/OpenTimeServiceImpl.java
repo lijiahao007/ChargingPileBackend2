@@ -47,4 +47,9 @@ public class OpenTimeServiceImpl extends ServiceImpl<OpenTimeMapper, OpenTime> i
         });
         return map;
     }
+
+    public List<OpenTime> getOpenTimeByStationId(int stationId) {
+        return list(new QueryWrapper<OpenTime>().eq("station_id", stationId));
+    }
+
 }

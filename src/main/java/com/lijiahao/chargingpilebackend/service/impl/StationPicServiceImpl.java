@@ -85,5 +85,16 @@ public class StationPicServiceImpl extends ServiceImpl<StationPicMapper, Station
         return urlMap;
     }
 
+    public List<String> getStationPicUrlWithPrefix(List<String> urlList, HttpServletRequest request) {
+        // 获取可以直接访问图片的url
+        ArrayList<String> res = new ArrayList<>();
+        String urlPrefix = "http://" + request.getServerName() + ":" + request.getServerPort() + "/chargingPileStation/getStationPic?url=";
+        for (String s : urlList) {
+            res.add(urlPrefix + s);
+        }
+        return res;
+    }
+
+
 
 }

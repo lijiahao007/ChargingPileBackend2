@@ -64,4 +64,15 @@ public class TagsStationMapServiceImpl extends ServiceImpl<TagsStationMapMapper,
         });
         return map;
     }
+
+
+    public List<Tags> getTagsByStationId(int stationId) {
+        ArrayList<Tags> res = new ArrayList<>();
+        List<TagsStationMap> list = list(new QueryWrapper<TagsStationMap>().eq("station_id", stationId));
+        list.forEach(tagsStationMap -> {
+            Tags tag = tagsService.getOne(new QueryWrapper<Tags>().eq("id", tagsStationMap.getTagsId()));
+            res.add(tag);
+        });
+        return res;
+    }
 }

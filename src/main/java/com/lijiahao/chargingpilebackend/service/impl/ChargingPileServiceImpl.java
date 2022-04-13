@@ -57,4 +57,7 @@ public class ChargingPileServiceImpl extends ServiceImpl<ChargingPileMapper, Cha
         return map;
     }
 
+    public List<ChargingPile> getChargingPileByStationId(int stationId) {
+        return list(new QueryWrapper<ChargingPile>().eq("station_id", stationId));
+    }
 }

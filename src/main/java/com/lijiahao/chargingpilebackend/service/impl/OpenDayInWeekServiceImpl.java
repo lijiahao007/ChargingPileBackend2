@@ -54,4 +54,8 @@ public class OpenDayInWeekServiceImpl extends ServiceImpl<OpenDayInWeekMapper, O
         }
         return map;
     }
+
+    public List<OpenDayInWeek> getOpenDayInWeekByStationId(int stationId) {
+        return this.list(new QueryWrapper<OpenDayInWeek>().eq("station_id",stationId));
+    }
 }

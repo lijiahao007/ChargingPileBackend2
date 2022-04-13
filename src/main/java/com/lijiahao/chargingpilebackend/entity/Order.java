@@ -2,15 +2,20 @@ package com.lijiahao.chargingpilebackend.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.NoArgsConstructor;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author lijiahao
@@ -18,9 +23,15 @@ import lombok.NoArgsConstructor;
  */
 @ApiModel(value = "Order对象", description = "")
 @NoArgsConstructor
+@TableName(value = "`order`")
 public class Order implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    public static final String STATE_USING = "待完成";
+    public static final String STATE_FINISH = "已完成";
+    public static final String STATE_CANCEL = "已取消";
+
 
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
@@ -31,17 +42,26 @@ public class Order implements Serializable {
     @ApiModelProperty("订单完成时间")
     private LocalDateTime completeTime;
 
+    @ApiModelProperty("订单修改时间")
+    private LocalDateTime updateTime;
+
+    @ApiModelProperty("开始充电时间")
+    private LocalDateTime beginChargeTime;
+
     @ApiModelProperty("订单状态")
-    private Integer state;
+    private String state;
 
     @ApiModelProperty("订单价格")
     private Float price;
 
     @ApiModelProperty("充电站ID")
-    private Integer stationId;
+    private Integer pileId;
 
     @ApiModelProperty("订单用户")
     private Integer userId;
+
+    @ApiModelProperty("订单UUID ，订单编号")
+    private String uuid;
 
     public Integer getId() {
         return id;
@@ -67,11 +87,11 @@ public class Order implements Serializable {
         this.completeTime = completeTime;
     }
 
-    public Integer getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(Integer state) {
+    public void setState(String state) {
         this.state = state;
     }
 
@@ -83,12 +103,12 @@ public class Order implements Serializable {
         this.price = price;
     }
 
-    public Integer getStationId() {
-        return stationId;
+    public Integer getPileId() {
+        return pileId;
     }
 
-    public void setStationId(Integer stationId) {
-        this.stationId = stationId;
+    public void setPileId(Integer pileId) {
+        this.pileId = pileId;
     }
 
     public Integer getUserId() {
@@ -99,16 +119,43 @@ public class Order implements Serializable {
         this.userId = userId;
     }
 
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public LocalDateTime getBeginChargeTime() {
+        return beginChargeTime;
+    }
+
+    public void setBeginChargeTime(LocalDateTime beginChargeTime) {
+        this.beginChargeTime = beginChargeTime;
+    }
+
     @Override
     public String toString() {
         return "Order{" +
-        "id=" + id +
-        ", createTime=" + createTime +
-        ", completeTime=" + completeTime +
-        ", state=" + state +
-        ", price=" + price +
-        ", stationId=" + stationId +
-        ", userId=" + userId +
-        "}";
+                "id=" + id +
+                ", createTime=" + createTime +
+                ", completeTime=" + completeTime +
+                ", updateTime=" + updateTime +
+                ", beginChargeTime=" + beginChargeTime +
+                ", state=" + state +
+                ", price=" + price +
+                ", stationId=" + pileId +
+                ", userId=" + userId +
+                ", uuid=" + uuid +
+                "}";
     }
 }

@@ -8,14 +8,18 @@ import com.lijiahao.chargingpilebackend.entity.User;
 public class JacksonTest {
     public static void main(String[] args) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        TestFather father = new TestSon("son name");
-        String str = mapper.writeValueAsString(father);
-        System.out.println(str);
-        TestSon son = mapper.readValue(str, TestSon.class);
-        System.out.println(son);
 
-        String json = "{\"firstName\":null,\"lastName\":\"son name\"}";
-        TestFather father1 = mapper.readValue(json, TestFather.class);
-        System.out.println("father1:" + father1);
+
+        TestFather father2 = new TestFather("father name");
+        String json1 = mapper.writeValueAsString(father2);
+        System.out.println("father2"+json1);
+
+        String json = "{\"firstName\":\"father name\"}";
+        TestFather father = mapper.readValue(json, TestFather.class);
+        System.out.println(father.toString());
+
+
+
+
     }
 }
