@@ -27,10 +27,6 @@ public class StationInfoTest {
             add("18:00");
         }});
 
-        request.setOpenTimeCharge(new ArrayList<Float>() {{
-            add(1.35f);
-            add(3.22f);
-        }});
 
         String res = mapper.writeValueAsString(request);
         System.out.println(res  );

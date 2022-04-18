@@ -1,16 +1,18 @@
 package com.lijiahao.chargingpilebackend.configuration;
 
-import com.lijiahao.chargingpilebackend.controller.converters.StringToMessageRequestConverter;
-import com.lijiahao.chargingpilebackend.controller.converters.StringToModifyUserInfoRequestConverter;
-import com.lijiahao.chargingpilebackend.controller.converters.StringToStationInfoRequestConverter;
+import com.lijiahao.chargingpilebackend.controller.converters.*;
 import com.lijiahao.chargingpilebackend.controller.interceptor.JwtAuthenticationInterceptor;
 import com.lijiahao.chargingpilebackend.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.format.DateTimeFormatters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.time.format.DateTimeFormatter;
 
 @Configuration
 public class ConverterConfig implements WebMvcConfigurer {

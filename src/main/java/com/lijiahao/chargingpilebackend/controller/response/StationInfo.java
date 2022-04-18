@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -19,4 +18,5 @@ public class StationInfo {
     List<OpenTime> openTimeList;
     List<OpenDayInWeek> openDayList;
     List<String> picList;
+    List<ElectricChargePeriod> chargePeriodList;
 }

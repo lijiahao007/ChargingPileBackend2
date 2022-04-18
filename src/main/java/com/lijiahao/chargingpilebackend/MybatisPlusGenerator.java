@@ -35,7 +35,7 @@ public class MybatisPlusGenerator {
                 })
                 .strategyConfig(builder -> {
                     builder
-//                            .addInclude("message") // 设置表名
+//                            .addInclude("electric_charge_period") // 设置表名
                             .enableSkipView()
                             .entityBuilder()
                             .idType(IdType.AUTO);

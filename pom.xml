@@ -63,6 +63,8 @@
             <scope>test</scope>
         </dependency>
 
+
+
         <!-- 热启动工具，神器呀，不用每次都重启服务器了 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -154,7 +156,7 @@
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>3.19.0</version>
+            <version>3.19.1</version>
         </dependency>
 
         <!-- WebSocket -->
@@ -162,12 +164,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
             <version>2.6.6</version>
-        </dependency>
-
-        <!-- jackson-datatype-jsr310  和Java8时间API相匹配的 -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
         <!-- ZXing 二维码生成 -->
@@ -183,6 +179,11 @@
             <version>3.4.1</version>
         </dependency>
 
+<!--        jackson-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
 
 
     </dependencies>

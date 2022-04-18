@@ -31,6 +31,7 @@ public class Order implements Serializable {
     public static final String STATE_USING = "待完成";
     public static final String STATE_FINISH = "已完成";
     public static final String STATE_CANCEL = "已取消";
+    public static final String STATE_UNPAID = "待支付";
 
 
     @TableId(value = "id", type = IdType.AUTO)

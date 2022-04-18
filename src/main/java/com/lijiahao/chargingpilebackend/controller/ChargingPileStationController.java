@@ -60,7 +60,9 @@ public class ChargingPileStationController {
     private final StationPicServiceImpl stationPicService;
     private final TagsStationMapServiceImpl tagsStationMapService;
     private final OpenDayInWeekServiceImpl openDayInWeekService;
+    private final ElectricChargePeriodServiceImpl electricChargePeriodService;
     private final ObjectMapper mapper = new ObjectMapper();
+
 
     @Autowired
     public ChargingPileStationController(
@@ -70,7 +72,8 @@ public class ChargingPileStationController {
             ChargingPileStationServiceImpl chargingPileStationService,
             StationPicServiceImpl stationPicService,
             TagsStationMapServiceImpl tagsStationMapService,
-            OpenDayInWeekServiceImpl openDayInWeekService) {
+            OpenDayInWeekServiceImpl openDayInWeekService,
+            ElectricChargePeriodServiceImpl electricChargePeriodService) {
         this.userService = userService;
         this.chargingPileService = chargingPileService;
         this.openTimeService = openTimeService;
@@ -78,6 +81,7 @@ public class ChargingPileStationController {
         this.stationPicService = stationPicService;
         this.tagsStationMapService = tagsStationMapService;
         this.openDayInWeekService = openDayInWeekService;
+        this.electricChargePeriodService = electricChargePeriodService;
     }
 
     private int index = 1;
@@ -103,7 +107,7 @@ public class ChargingPileStationController {
         chargingPileService.save(new ChargingPile("交流", 7f, chargingStationId));
 
         // 插入测试用的OpenTime
-        openTimeService.save(new OpenTime(LocalTime.of(0, 0), LocalTime.of(23, 59), 1.3f, chargingStationId));
+        openTimeService.save(new OpenTime(LocalTime.of(0, 0), LocalTime.of(23, 59), chargingStationId));
 
         // 插入测试用的StationPic
         stationPicService.save(new StationPic("C:\\Users\\10403\\Desktop\\imgs\\station_pic\\station_1.jpg", chargingStationId));
@@ -171,6 +175,12 @@ public class ChargingPileStationController {
         return openDayInWeekService.getOpenDayInWeek();
     }
 
+    @ApiOperation("获取每个站点电费收费")
+    @GetMapping("/getStationElectricCharge")
+    public Map<Integer, List<ElectricChargePeriod>> getStationElectricCharge() {
+        return electricChargePeriodService.getElectricChargePeriod();
+    }
+
     @ApiOperation("获取所有充电站的所有信息")
     @GetMapping("/getStationInfo")
     public StationAllInfo getStationInfo(HttpServletRequest request) {
@@ -181,7 +191,8 @@ public class ChargingPileStationController {
         Map<Integer, List<OpenDayInWeek>> openDayInWeekMap = openDayInWeekService.getOpenDayInWeek();
         Map<Integer, List<String>> picMap = stationPicService.getStationPicUrl();
         picMap = stationPicService.getStationPicUrlWithPrefix(picMap, request);
-        return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap);
+        Map<Integer, List<ElectricChargePeriod>> electricChargePeriodMap = electricChargePeriodService.getElectricChargePeriod();
+        return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap, electricChargePeriodMap);
     }
 
 
@@ -196,7 +207,8 @@ public class ChargingPileStationController {
         Map<Integer, List<OpenDayInWeek>> openDayInWeekMap = openDayInWeekService.getOpenDayInWeek(stationIds);
         Map<Integer, List<String>> picMap = stationPicService.getStationPicUrl(stationIds);
         picMap = stationPicService.getStationPicUrlWithPrefix(picMap, request);
-        return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap);
+        Map<Integer, List<ElectricChargePeriod>> electricChargePeriodMap = electricChargePeriodService.getElectricChargePeriod(stationIds);
+        return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap, electricChargePeriodMap);
     }
 
 
@@ -210,7 +222,8 @@ public class ChargingPileStationController {
         List<OpenDayInWeek> openDayInWeeks = openDayInWeekService.getOpenDayInWeekByStationId(stationId);
         List<String> picList = stationPicService.getStationPicUrlByStationId(stationId);
         picList = stationPicService.getStationPicUrlWithPrefix(picList, request);
-        return new StationInfo(station, tags, chargingPiles, openTimes, openDayInWeeks, picList);
+        List<ElectricChargePeriod> electricChargePeriods = electricChargePeriodService.getElectricChargePeriodByStationId(stationId);
+        return new StationInfo(station, tags, chargingPiles, openTimes, openDayInWeeks, picList, electricChargePeriods);
     }
 
 
@@ -271,14 +284,14 @@ public class ChargingPileStationController {
         ChargingPileStation station = stationInfoRequest.getStation();
         List<String> openDayInWeek = stationInfoRequest.getOpenDayInWeek();
         List<String> openTime = stationInfoRequest.getOpenTime();
-        List<Float> openTimeCharge = stationInfoRequest.getOpenTimeCharge();
+        List<ElectricChargePeriod> electricChargePeriods = stationInfoRequest.getElectricChargePeriods();
         List<ChargingPile> chargingPiles = stationInfoRequest.getChargingPiles();
         String userId = stationInfoRequest.getUserId();
 
         log.warn("接收到的站点信息：" + station);
         log.warn("接收到的开放时间信息：" + openDayInWeek);
         log.warn("接收到的开放时间信息：" + openTime);
-        log.warn("接收到的开放时间收费信息：" + openTimeCharge);
+        log.warn("接收到的开放时间收费信息：" + electricChargePeriods);
         log.warn("接收到的充电桩信息：" + chargingPiles);
         log.warn("接收到的用户id：" + userId);
 
@@ -296,8 +309,14 @@ public class ChargingPileStationController {
         // 将openTime保存到数据库
         for (int i = 0; i < openTime.size(); i++) {
             List<LocalTime> localTimes = TimeUtils.stringToLocalTime(openTime.get(i));
-            OpenTime time = new OpenTime(localTimes.get(0), localTimes.get(1), openTimeCharge.get(i), stationId);
+            OpenTime time = new OpenTime(localTimes.get(0), localTimes.get(1), stationId);
             openTimeService.save(time);
+        }
+
+        // 将ElectricChargePeriod保存到数据库
+        for (ElectricChargePeriod electricChargePeriod : electricChargePeriods) {
+            electricChargePeriod.setStationId(stationId);
+            electricChargePeriodService.save(electricChargePeriod);
         }
 
         // 将chargingPiles保存到数据库
@@ -336,14 +355,15 @@ public class ChargingPileStationController {
         ChargingPileStation station = stationInfoRequest.getStation();
         List<String> openDayInWeek = stationInfoRequest.getOpenDayInWeek();
         List<String> openTime = stationInfoRequest.getOpenTime();
-        List<Float> openTimeCharge = stationInfoRequest.getOpenTimeCharge();
         List<ChargingPile> chargingPiles = stationInfoRequest.getChargingPiles();
         String userId = stationInfoRequest.getUserId();
+        List<ElectricChargePeriod> electricChargePeriods = stationInfoRequest.getElectricChargePeriods();
+
 
         log.warn("接收到的站点信息：" + station);
         log.warn("接收到的开放时间信息：" + openDayInWeek);
         log.warn("接收到的开放时间信息：" + openTime);
-        log.warn("接收到的开放时间收费信息：" + openTimeCharge);
+        log.warn("接收到的开放时间收费信息：" + electricChargePeriods);
         log.warn("接收到的充电桩信息：" + chargingPiles);
         log.warn("接收到的用户id：" + userId);
 
@@ -361,8 +381,14 @@ public class ChargingPileStationController {
         // 将openTime保存到数据库
         for (int i = 0; i < openTime.size(); i++) {
             List<LocalTime> localTimes = TimeUtils.stringToLocalTime(openTime.get(i));
-            OpenTime time = new OpenTime(localTimes.get(0), localTimes.get(1), openTimeCharge.get(i), stationId);
+            OpenTime time = new OpenTime(localTimes.get(0), localTimes.get(1), stationId);
             openTimeService.save(time);
+        }
+
+        // 将ElectricChargePeriod保存到数据库
+        for (ElectricChargePeriod electricChargePeriod : electricChargePeriods) {
+            electricChargePeriod.setStationId(stationId);
+            electricChargePeriodService.save(electricChargePeriod);
         }
 
         // 将chargingPiles保存到数据库
@@ -426,14 +452,21 @@ public class ChargingPileStationController {
         // 3. 更新OpenTime
         openTimeService.remove(new QueryWrapper<OpenTime>().eq("station_id", stationId));
         List<String> openTime = stationInfoRequest.getOpenTime();
-        List<Float> openTimeCharge = stationInfoRequest.getOpenTimeCharge();
+        List<ElectricChargePeriod> electricChargePeriods = stationInfoRequest.getElectricChargePeriods();
         for (int i = 0; i < openTime.size(); i++) {
             List<LocalTime> localTimes = TimeUtils.stringToLocalTime(openTime.get(i));
-            OpenTime time = new OpenTime(localTimes.get(0), localTimes.get(1), openTimeCharge.get(i), stationId);
+            OpenTime time = new OpenTime(localTimes.get(0), localTimes.get(1), stationId);
             openTimeService.save(time);
         }
 
-        // 4. 更新ChargingPile
+        // 4. 更新ElectricChargePeriod
+        electricChargePeriodService.remove(new QueryWrapper<ElectricChargePeriod>().eq("station_id", stationId));
+        for (ElectricChargePeriod electricChargePeriod : electricChargePeriods) {
+            electricChargePeriod.setStationId(stationId);
+            electricChargePeriodService.save(electricChargePeriod);
+        }
+
+        // 5. 更新ChargingPile
         List<ChargingPile> piles = stationInfoRequest.getChargingPiles();
         List<ChargingPile> newPiles = new ArrayList<>();
         List<Integer> remainPilesId = new ArrayList<>();
@@ -444,7 +477,7 @@ public class ChargingPileStationController {
                 remainPilesId.add(pile.getId());
             }
         }
-        // 4.1 删除已存在但已经被用户删除的充电桩
+        // 5.1 删除已存在但已经被用户删除的充电桩
         if (remainPilesId.size() == 0) {
             // 如果remainPilesId为空，说明充电桩全部被用户删除，需要删除所有充电桩
             remainPilesId.add(0);
@@ -459,7 +492,7 @@ public class ChargingPileStationController {
             }
             chargingPileService.removeById(pile.getId());
         }
-        // 4.2 添加新增的充电桩
+        // 5.2 添加新增的充电桩
         for (ChargingPile pile : newPiles) {
             pile.setState("空闲");
             pile.setStationId(stationId);
@@ -476,7 +509,7 @@ public class ChargingPileStationController {
         List<ChargingPile> curPiles = chargingPileService.list(new QueryWrapper<ChargingPile>().eq("station_id", stationId));
 
 
-        // 5. 删除不在remotePicsUris中的图片
+        // 6. 删除不在remotePicsUris中的图片
         List<StationPic> targetList = stationPicService.list(new QueryWrapper<StationPic>().eq("station_id", stationId).notIn("url", remotePicsUris));
         log.warn(targetList.toString());
         stationPicService.remove(new QueryWrapper<StationPic>()
@@ -484,7 +517,7 @@ public class ChargingPileStationController {
                 .notIn("url", remotePicsUris));
 
 
-        // 6. 添加新的照片
+        // 7. 添加新的照片
         for (MultipartFile file : newImages) {
             if (file.getSize() == 0) break; // 空文件不写入
             File localFile = FileUtils.writeMultipartFileToLocal(file, "C:\\Users\\10403\\Desktop\\imgs\\station_pic\\", "stationPic");
