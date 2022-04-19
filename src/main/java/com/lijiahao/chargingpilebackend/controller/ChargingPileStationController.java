@@ -201,6 +201,12 @@ public class ChargingPileStationController {
     public StationAllInfo getStationInfoByUserId(@RequestParam("userId") int userId, HttpServletRequest request) {
         List<ChargingPileStation> stations = chargingPileStationService.list(new QueryWrapper<ChargingPileStation>().eq("user_id", userId));
         List<Integer> stationIds = chargingPileStationService.getUserStation(userId);
+
+        if (stationIds.size() == 0) {
+            stationIds.add(0); // 如果是空的，就插入一个不可能存在的id
+        }
+
+
         Map<Integer, List<Tags>> tagMap = tagsStationMapService.getStationTags(stationIds);
         Map<Integer, List<ChargingPile>> pileMap = chargingPileService.getStationChargingPile(stationIds);
         Map<Integer, List<OpenTime>> openTimeMap = openTimeService.getStationOpenTime(stationIds);
@@ -344,6 +350,18 @@ public class ChargingPileStationController {
             log.warn("上传图片成功");
         }
         return mapper.writeValueAsString("success filesize=" + files.size());
+    }
+
+
+    @ApiOperation(value = "上传当前存在的StationIds, 将该用户其他的Station删除")
+    @PostMapping("/uploadRemainStationIds")
+    @Transactional
+    public String uploadRemainStationIds(@RequestParam("stationIds") List<String> stationIds, @RequestParam("userId") String userId) throws JsonProcessingException {
+        log.warn("接收到的stationIds：" + stationIds);
+        log.warn("接收到的userId：" + userId);
+        List<Integer> ids = stationIds.stream().map(Integer::valueOf).collect(Collectors.toList());
+        chargingPileStationService.remove(new QueryWrapper<ChargingPileStation>().eq("user_id", Integer.valueOf(userId)).notIn("id", ids));
+        return mapper.writeValueAsString("success");
     }
 
     @ApiOperation("上传新的充电站信息")

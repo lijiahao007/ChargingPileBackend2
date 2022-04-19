@@ -5,14 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lijiahao.chargingpilebackend.controller.response.GenerateOrderResponse;
-import com.lijiahao.chargingpilebackend.entity.ChargingPile;
-import com.lijiahao.chargingpilebackend.entity.ElectricChargePeriod;
-import com.lijiahao.chargingpilebackend.entity.OpenTime;
-import com.lijiahao.chargingpilebackend.entity.Order;
-import com.lijiahao.chargingpilebackend.service.impl.ChargingPileServiceImpl;
-import com.lijiahao.chargingpilebackend.service.impl.ElectricChargePeriodServiceImpl;
-import com.lijiahao.chargingpilebackend.service.impl.OpenTimeServiceImpl;
-import com.lijiahao.chargingpilebackend.service.impl.OrderServiceImpl;
+import com.lijiahao.chargingpilebackend.controller.response.QueryOrderResponse;
+import com.lijiahao.chargingpilebackend.entity.*;
+import com.lijiahao.chargingpilebackend.service.impl.*;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +22,9 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalUnit;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -43,6 +37,9 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequestMapping("/order")
 public class OrderController {
+
+    @Autowired
+    ChargingPileStationServiceImpl chargingPileStationService;
 
     @Autowired
     ChargingPileServiceImpl chargingPileService;
@@ -170,12 +167,58 @@ public class OrderController {
     }
 
 
+    @GetMapping("/queryOrderByUserId")
+    public QueryOrderResponse queryOrderByUserId(@RequestParam("userId") int userId) {
+
+        // 1. 获取自身使用的订单
+        List<Order> finishOrder = orderService.list(new QueryWrapper<Order>()
+                .eq("user_id", userId)
+                .eq("state", Order.STATE_FINISH));
+        List<Order> processingOrder = orderService.list(new QueryWrapper<Order>()
+                .eq("user_id", userId)
+                .eq("state", Order.STATE_USING));
+
+        QueryOrderResponse response = new QueryOrderResponse();
+        response.setFinishOrder(finishOrder);
+        response.setProcessingOrder(processingOrder);
+
+        // 2. 获取提供服务的订单
+        List<ChargingPileStation> stations = chargingPileStationService.list(
+                new QueryWrapper<ChargingPileStation>()
+                        .eq("user_id", userId)
+        );
+
+        HashMap<Integer, Map<Integer, List<Order>>> stationPileServiceOrderMap = new HashMap<>(); // <StationId, <PileId, Order>>
+        List<Integer> stationIds = stations.stream().map(ChargingPileStation::getId).collect(Collectors.toList());
+        Map<Integer, List<ChargingPile>> stationPileMap = chargingPileService.getStationChargingPile(stationIds);
+        for (Integer stationId : stationIds) {
+            List<ChargingPile> piles = stationPileMap.get(stationId);
+            if (piles != null) {
+                HashMap<Integer, List<Order>> pileOrderMap = new HashMap<>();
+                for (ChargingPile pile : piles) {
+                    int pileId = pile.getId();
+                    List<Order> orders = orderService.list(new QueryWrapper<Order>().eq("pile_id", pile.getId()));
+                    if (orders.size() > 0) {
+                        pileOrderMap.put(pileId, orders);
+                    }
+                }
+                if (pileOrderMap.size() > 0) {
+                    stationPileServiceOrderMap.put(stationId, pileOrderMap);
+                }
+            }
+        }
+        response.setServiceOrder(stationPileServiceOrderMap);
+        return response;
+    }
+
+
     /**
      * 计算同一天 beginTime ~ endTime 的充电费用
+     *
      * @param electricChargePeriods 充电桩营业时间
-     * @param beginTime 充电开始时间
-     * @param endTime   充电结束时间
-     * @param powerRate 充电桩功率
+     * @param beginTime             充电开始时间
+     * @param endTime               充电结束时间
+     * @param powerRate             充电桩功率
      * @return
      */
     private double calChargingFee(List<ElectricChargePeriod> electricChargePeriods, LocalTime beginTime, LocalTime endTime, double powerRate) {
@@ -228,10 +271,11 @@ public class OrderController {
 
     /**
      * 计算从 beginDateTime, endDateTime 时间段内充电费用
+     *
      * @param electricChargePeriods 时间段收费情况
-     * @param beginDateTime 开始时间
-     * @param endDateTime 结束时间
-     * @param powerRate 功率
+     * @param beginDateTime         开始时间
+     * @param endDateTime           结束时间
+     * @param powerRate             功率
      * @return 费用
      */
     private double calChargingFee(List<ElectricChargePeriod> electricChargePeriods, LocalDateTime beginDateTime, LocalDateTime endDateTime, double powerRate) {
@@ -261,7 +305,6 @@ public class OrderController {
         }
         return sumPrice;
     }
-
 
     private Boolean isBetween(LocalTime target, LocalTime begin, LocalTime end) {
         return (target.equals(begin) || target.isAfter(begin)) && (target.equals(end) || target.isBefore(end));
