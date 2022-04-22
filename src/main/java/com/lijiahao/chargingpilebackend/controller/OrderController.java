@@ -2,28 +2,26 @@ package com.lijiahao.chargingpilebackend.controller;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lijiahao.chargingpilebackend.controller.response.GenerateOrderResponse;
 import com.lijiahao.chargingpilebackend.controller.response.QueryOrderResponse;
-import com.lijiahao.chargingpilebackend.entity.*;
+import com.lijiahao.chargingpilebackend.entity.ChargingPile;
+import com.lijiahao.chargingpilebackend.entity.ChargingPileStation;
+import com.lijiahao.chargingpilebackend.entity.ElectricChargePeriod;
+import com.lijiahao.chargingpilebackend.entity.Order;
 import com.lijiahao.chargingpilebackend.service.impl.*;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -166,7 +164,7 @@ public class OrderController {
         return mapper.writeValueAsString("success");
     }
 
-
+    @ApiOperation("获取个人相关订单")
     @GetMapping("/queryOrderByUserId")
     public QueryOrderResponse queryOrderByUserId(@RequestParam("userId") int userId) {
 
@@ -176,7 +174,8 @@ public class OrderController {
                 .eq("state", Order.STATE_FINISH));
         List<Order> processingOrder = orderService.list(new QueryWrapper<Order>()
                 .eq("user_id", userId)
-                .eq("state", Order.STATE_USING));
+                .and(i -> i.eq("state", Order.STATE_USING).or().eq("state", Order.STATE_UNPAID)));
+
 
         QueryOrderResponse response = new QueryOrderResponse();
         response.setFinishOrder(finishOrder);
@@ -191,6 +190,7 @@ public class OrderController {
         HashMap<Integer, Map<Integer, List<Order>>> stationPileServiceOrderMap = new HashMap<>(); // <StationId, <PileId, Order>>
         List<Integer> stationIds = stations.stream().map(ChargingPileStation::getId).collect(Collectors.toList());
         Map<Integer, List<ChargingPile>> stationPileMap = chargingPileService.getStationChargingPile(stationIds);
+        HashMap<Integer, Integer> pileStationMap = new HashMap<>(); // <PileId, StationId> 获取所有订单相关的充电桩、充电站对应关系
         for (Integer stationId : stationIds) {
             List<ChargingPile> piles = stationPileMap.get(stationId);
             if (piles != null) {
@@ -200,6 +200,7 @@ public class OrderController {
                     List<Order> orders = orderService.list(new QueryWrapper<Order>().eq("pile_id", pile.getId()));
                     if (orders.size() > 0) {
                         pileOrderMap.put(pileId, orders);
+                        pileStationMap.put(pileId, stationId);
                     }
                 }
                 if (pileOrderMap.size() > 0) {
@@ -208,9 +209,35 @@ public class OrderController {
             }
         }
         response.setServiceOrder(stationPileServiceOrderMap);
+
+
+        // 3. 获取相关的ChargingPileStation
+        HashSet<Integer> pileSet = new HashSet<>();
+        processingOrder.forEach(order -> pileSet.add(order.getPileId()));
+        finishOrder.forEach(order -> pileSet.add(order.getPileId()));
+        HashSet<Integer> stationSet = new HashSet<>();
+        for (Integer pileId : pileSet) {
+            ChargingPile pile = chargingPileService.getById(pileId);
+            stationSet.add(pile.getStationId());
+            pileStationMap.put(pileId, pile.getStationId());
+        }
+        stationSet.addAll(stationPileServiceOrderMap.keySet());
+        HashMap<Integer, ChargingPileStation> relateStationMap = new HashMap<>();
+        if (stationSet.size() > 0) {
+            List<ChargingPileStation> relateStations = chargingPileStationService.listByIds(stationSet);
+            relateStations.forEach(station -> relateStationMap.put(station.getId(), station));
+        }
+        response.setStationInfoMap(relateStationMap);
+        response.setPileStationMap(pileStationMap);
+
         return response;
     }
 
+    @ApiOperation("获取某个订单的信息")
+    @GetMapping("/queryOrderByOrderId")
+    public Order queryOrderByOrderId(@RequestParam("orderId") int orderId) {
+        return orderService.getById(orderId);
+    }
 
     /**
      * 计算同一天 beginTime ~ endTime 的充电费用

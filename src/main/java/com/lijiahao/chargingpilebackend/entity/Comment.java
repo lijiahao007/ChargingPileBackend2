@@ -1,6 +1,7 @@
 package com.lijiahao.chargingpilebackend.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ public class Comment implements Serializable {
     private String star;
 
     @ApiModelProperty("该评论被点赞数量")
+    @TableField("`like`")
     private Integer like;
 
     @ApiModelProperty("评论创建时间")
@@ -43,6 +45,8 @@ public class Comment implements Serializable {
     private Integer userId;
 
     private Integer stationId;
+
+    private Integer pileId;
 
     public Integer getId() {
         return id;
@@ -106,6 +110,14 @@ public class Comment implements Serializable {
 
     public void setStationId(Integer stationId) {
         this.stationId = stationId;
+    }
+
+    public Integer getPileId() {
+        return pileId;
+    }
+
+    public void setPileId(Integer pileId) {
+        this.pileId = pileId;
     }
 
     @Override

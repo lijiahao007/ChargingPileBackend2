@@ -3,6 +3,7 @@ package com.lijiahao.chargingpilebackend.databaseTest;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.lijiahao.chargingpilebackend.entity.*;
 import com.lijiahao.chargingpilebackend.service.impl.*;
+import com.lijiahao.chargingpilebackend.utils.QRCodeUtils;
 import org.hamcrest.object.HasToString;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -11,7 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 
@@ -24,6 +29,7 @@ public class ServiceTest {
     private final TagsServiceImpl tagsService;
     private final ChargingPileServiceImpl chargingPileService;
     private final StationPicServiceImpl stationPicService;
+
     @Autowired
     public ServiceTest(
             UserServiceImpl userService,
@@ -31,7 +37,7 @@ public class ServiceTest {
             TagsStationMapServiceImpl tagsStationMapService,
             TagsServiceImpl tagsService,
             ChargingPileServiceImpl chargingPileService,
-            StationPicServiceImpl stationPicService){
+            StationPicServiceImpl stationPicService) {
         this.userService = userService;
         this.openTimeService = openTimeService;
         this.tagsStationMapService = tagsStationMapService;
@@ -69,14 +75,16 @@ public class ServiceTest {
 
     @Test
     public void mapListTest() {
-        List<TagsStationMap> list =  tagsStationMapService.list(new QueryWrapper<TagsStationMap>());
+        List<TagsStationMap> list = tagsStationMapService.list(new QueryWrapper<TagsStationMap>());
         Map<Integer, List<Tags>> map = new HashMap<>();
         list.forEach((TagsStationMap tagsStationMap) -> {
             Tags tag = tagsService.getOne(new QueryWrapper<Tags>().eq("id", tagsStationMap.getTagsId()));
-            if(map.containsKey(tagsStationMap.getStationId())) {
+            if (map.containsKey(tagsStationMap.getStationId())) {
                 map.get(tagsStationMap.getStationId()).add(tag);
             } else {
-                map.put(tagsStationMap.getStationId(), new ArrayList<Tags>(){{add(tag);}});
+                map.put(tagsStationMap.getStationId(), new ArrayList<Tags>() {{
+                    add(tag);
+                }});
             }
         });
 
@@ -92,10 +100,12 @@ public class ServiceTest {
         HashMap<Integer, List<ChargingPile>> map = new HashMap<>();
         chargingPileService.list().forEach(chargingPile -> {
             int stationId = chargingPile.getStationId();
-            if(map.containsKey(stationId)) {
+            if (map.containsKey(stationId)) {
                 map.get(stationId).add(chargingPile);
             } else {
-                map.put(stationId, new ArrayList<ChargingPile>(){{add(chargingPile);}});
+                map.put(stationId, new ArrayList<ChargingPile>() {{
+                    add(chargingPile);
+                }});
             }
         });
         map.forEach((Integer key, List<ChargingPile> value) -> {
@@ -110,10 +120,12 @@ public class ServiceTest {
         HashMap<Integer, List<OpenTime>> map = new HashMap<>();
         openTimeService.list().forEach(openTime -> {
             int stationId = openTime.getStationId();
-            if(map.containsKey(stationId)) {
+            if (map.containsKey(stationId)) {
                 map.get(stationId).add(openTime);
             } else {
-                map.put(stationId, new ArrayList<OpenTime>(){{add(openTime);}});
+                map.put(stationId, new ArrayList<OpenTime>() {{
+                    add(openTime);
+                }});
             }
         });
         map.forEach((Integer key, List<OpenTime> value) -> {
@@ -131,6 +143,45 @@ public class ServiceTest {
         System.out.println(url.equals(target));
         System.out.println(url);
         System.out.println(target);
+    }
+
+
+    @Test
+    public void generateQRCode() {
+        // 为每一个没有二维码的充电桩创建二维码
+        List<ChargingPile> list = chargingPileService.list(new QueryWrapper<ChargingPile>().isNull("qrcode_url"));
+        list.forEach(chargingPile -> {
+            try {
+                QRCodeContent content = new QRCodeContent(chargingPile.getStationId().toString(), chargingPile.getId().toString());
+                String prefix = chargingPile.getStationId() + "_" + chargingPile.getId() + "_";
+                File file = File.createTempFile(prefix, ".png", new File("C:\\Users\\10403\\Desktop\\imgs\\pile_qrcode"));
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                QRCodeUtils.getQRCode(content.getJson(), fileOutputStream);
+                chargingPile.setQrcodeUrl(file.getAbsolutePath());
+                chargingPileService.updateById(chargingPile);
+                System.out.println("成功写入：" + chargingPile.getId() + " " + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @Test
+    public void deleteBadQRCodeFile() {
+        // 删除已经不存在的充电桩对应二维码
+        File file = new File("C:\\Users\\10403\\Desktop\\imgs\\pile_qrcode");
+        File[] childFiles = file.listFiles();
+        List<ChargingPile> list = chargingPileService.list();
+        List<String> goodPath = list.stream().map(ChargingPile::getQrcodeUrl).collect(Collectors.toList());
+        assert childFiles != null;
+        for (File tmpFile: childFiles) {
+            if (goodPath.contains(tmpFile.getAbsolutePath())) {
+                System.out.println(tmpFile.getAbsolutePath() + "   good");
+            } else {
+                boolean isDelete = tmpFile.delete();
+                System.out.println(tmpFile.getAbsolutePath() + "   bad  isDelete:"+isDelete);
+            }
+        }
     }
 
 }
