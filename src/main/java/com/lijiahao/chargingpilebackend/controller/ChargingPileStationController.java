@@ -386,6 +386,8 @@ public class ChargingPileStationController {
         // 将station保存到数据库
         station.setUserId(Integer.valueOf(userId));
         station.setCollection(0); // 初始化收藏数
+        station.setScore(0.0); // 初始化评分
+        station.setUsedTime(0); // 初始化使用次数
         chargingPileStationService.save(station);
         int stationId = station.getId();
 
@@ -457,6 +459,9 @@ public class ChargingPileStationController {
 
         // 1. 更新充电站信息
         ChargingPileStation station = stationInfoRequest.getStation();
+        ChargingPileStation oldStation = chargingPileStationService.getById(station.getId());
+        station.setScore(oldStation.getScore());
+        station.setUsedTime(oldStation.getUsedTime());
         chargingPileStationService.updateById(station);
 
         // 2. 更新OpenDayInWeek

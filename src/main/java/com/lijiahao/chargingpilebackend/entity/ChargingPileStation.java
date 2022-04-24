@@ -69,6 +69,10 @@ public class ChargingPileStation implements Serializable {
     @ApiModelProperty("充电站分数")
     private Double score;
 
+    @ApiModelProperty("充电站被使用次数")
+    private Integer usedTime;
+
+
     public ChargingPileStation(Double longitude, Double latitude, String name, String posDescription, Float parkFee, Integer collection, Integer userId) {
         this.longitude = longitude;
         this.latitude = latitude;
@@ -178,12 +182,16 @@ public class ChargingPileStation implements Serializable {
         this.remark = remark;
     }
 
-    public Double getScore() {
-        return score;
+    public Double getScore() { return score; }
+
+    public void setScore(Double score) { this.score = score; }
+
+    public Integer getUsedTime() {
+        return usedTime;
     }
 
-    public void setScore(Double score) {
-        this.score = score;
+    public void setUsedTime(Integer usedTime) {
+        this.usedTime = usedTime;
     }
 
     @Override
@@ -201,6 +209,7 @@ public class ChargingPileStation implements Serializable {
                 ", updateTime=" + updateTime +
                 ", remarks=" + remark +
                 ", score=" + score +
+                ", usedTime=" + usedTime +
                 "}";
     }
 }

@@ -29,6 +29,9 @@ public class ServiceTest {
     private final TagsServiceImpl tagsService;
     private final ChargingPileServiceImpl chargingPileService;
     private final StationPicServiceImpl stationPicService;
+    private final CommentServiceImpl commentService;
+    private final OrderServiceImpl orderService;
+    private final ChargingPileStationServiceImpl chargingPileStationService;
 
     @Autowired
     public ServiceTest(
@@ -37,13 +40,19 @@ public class ServiceTest {
             TagsStationMapServiceImpl tagsStationMapService,
             TagsServiceImpl tagsService,
             ChargingPileServiceImpl chargingPileService,
-            StationPicServiceImpl stationPicService) {
+            StationPicServiceImpl stationPicService,
+            CommentServiceImpl commentService,
+            OrderServiceImpl orderService,
+            ChargingPileStationServiceImpl chargingPileStationService) {
         this.userService = userService;
         this.openTimeService = openTimeService;
         this.tagsStationMapService = tagsStationMapService;
         this.tagsService = tagsService;
         this.chargingPileService = chargingPileService;
         this.stationPicService = stationPicService;
+        this.commentService = commentService;
+        this.orderService = orderService;
+        this.chargingPileStationService = chargingPileStationService;
     }
 
     @Test
@@ -174,14 +183,58 @@ public class ServiceTest {
         List<ChargingPile> list = chargingPileService.list();
         List<String> goodPath = list.stream().map(ChargingPile::getQrcodeUrl).collect(Collectors.toList());
         assert childFiles != null;
-        for (File tmpFile: childFiles) {
+        for (File tmpFile : childFiles) {
             if (goodPath.contains(tmpFile.getAbsolutePath())) {
                 System.out.println(tmpFile.getAbsolutePath() + "   good");
             } else {
                 boolean isDelete = tmpFile.delete();
-                System.out.println(tmpFile.getAbsolutePath() + "   bad  isDelete:"+isDelete);
+                System.out.println(tmpFile.getAbsolutePath() + "   bad  isDelete:" + isDelete);
             }
         }
+    }
+
+    @Test
+    public void updateScoreAndUsedTime() {
+        // 更新ChargingPileStation的分数和使用次数
+        List<Order> orders = orderService.list();
+        List<Comment> comments = commentService.list();
+        Map<Integer, List<Double>> scoreMap = new HashMap<>();
+        Map<Integer, Integer> usedTimeMap = new HashMap<>();
+
+        orders.forEach(order -> {
+            Integer pileId = order.getPileId();
+            Integer stationId = chargingPileService.getById(pileId).getStationId();
+            if (usedTimeMap.containsKey(stationId)) {
+                usedTimeMap.put(stationId, usedTimeMap.get(stationId) + 1);
+            } else {
+                usedTimeMap.put(stationId, 1);
+            }
+        });
+        comments.forEach(comment -> {
+            Integer stationId = comment.getStationId();
+            if (scoreMap.containsKey(stationId)) {
+                scoreMap.get(stationId).add(Integer.parseInt(comment.getStar()) * 1.0);
+            } else {
+                scoreMap.put(stationId, new ArrayList<Double>() {{
+                    add(Integer.parseInt(comment.getStar()) * 1.0);
+                }});
+            }
+        });
+
+        scoreMap.forEach((stationId, scores) -> {
+            double sum = scores.stream().mapToDouble(Double::doubleValue).sum();
+            double avg = sum / scores.size();
+            ChargingPileStation station = chargingPileStationService.getById(stationId);
+            station.setScore(avg);
+            chargingPileStationService.updateById(station);
+        });
+
+        usedTimeMap.forEach((stationId, usedTime) -> {
+            ChargingPileStation station = chargingPileStationService.getById(stationId);
+            station.setUsedTime(usedTime);
+            chargingPileStationService.updateById(station);
+        });
+
     }
 
 }

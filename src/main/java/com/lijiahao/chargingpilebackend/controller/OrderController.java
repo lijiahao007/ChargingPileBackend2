@@ -94,6 +94,11 @@ public class OrderController {
         Order newOrder = orderService.getById(order.getId());
         response.setOrder(newOrder);
 
+        // 4. 充电站使用次数加1
+        ChargingPileStation station = chargingPileStationService.getById(pile.getStationId());
+        station.setUsedTime(station.getUsedTime() + 1);
+        chargingPileStationService.updateById(station);
+
         return response;
     }
 
