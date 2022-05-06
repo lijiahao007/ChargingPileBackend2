@@ -1,7 +1,10 @@
 package com.lijiahao.chargingpilebackend.base;
 
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -40,6 +43,14 @@ public class TimeTest {
         double c = 3.1415926525;
         String cStr = String.format("%.2f", c);
         System.out.println(cStr);
+
+        LocalDate date = LocalDate.of(2020, 4, 13);
+        System.out.println(date.toString());
+        LocalDate date1 = LocalDate.parse("2020-04-13");
+        System.out.println(date1);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        System.out.println(date1.format(formatter));
 
     }
 }

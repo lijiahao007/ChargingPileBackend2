@@ -2,15 +2,17 @@ package com.lijiahao.chargingpilebackend.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.NoArgsConstructor;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author lijiahao
@@ -22,20 +24,31 @@ public class Appointment implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String STATE_FINISH = "已完成";
+    public static final String STATE_CANCEL = "已取消";
+    public static final String STATE_WAITING = "待使用";
+
+
     @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
     @ApiModelProperty("预约开始时间")
-    private LocalDateTime beginTime;
+    private LocalDateTime beginDateTime;
 
     @ApiModelProperty("预约结束时间")
-    private LocalDateTime endTime;
+    private LocalDateTime endDateTime;
 
     @ApiModelProperty("充电桩ID")
     private Integer pileId;
 
     @ApiModelProperty("预约用户")
     private Integer userId;
+
+    @ApiModelProperty("充电站ID")
+    private Integer stationId;
+
+    @ApiModelProperty("预约状态")
+    private String state;
 
 
     public Integer getId() {
@@ -46,20 +59,20 @@ public class Appointment implements Serializable {
         this.id = id;
     }
 
-    public LocalDateTime getBeginTime() {
-        return beginTime;
+    public LocalDateTime getBeginDateTime() {
+        return beginDateTime;
     }
 
-    public void setBeginTime(LocalDateTime beginTime) {
-        this.beginTime = beginTime;
+    public void setBeginDateTime(LocalDateTime beginTime) {
+        this.beginDateTime = beginTime;
     }
 
-    public LocalDateTime getEndTime() {
-        return endTime;
+    public LocalDateTime getEndDateTime() {
+        return endDateTime;
     }
 
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
+    public void setEndDateTime(LocalDateTime endTime) {
+        this.endDateTime = endTime;
     }
 
     public Integer getPileId() {
@@ -78,14 +91,32 @@ public class Appointment implements Serializable {
         this.userId = userId;
     }
 
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public Integer getStationId() {
+        return stationId;
+    }
+
+    public void setStationId(Integer stationId) {
+        this.stationId = stationId;
+    }
+
     @Override
     public String toString() {
         return "Appointment{" +
-        "id=" + id +
-        ", beginTime=" + beginTime +
-        ", endTime=" + endTime +
-        ", pileId=" + pileId +
-        ", userId=" + userId +
-        "}";
+                "id=" + id +
+                ", beginTime=" + beginDateTime +
+                ", endTime=" + endDateTime +
+                ", pileId=" + pileId +
+                ", userId=" + userId +
+                ", stationId=" + stationId +
+                ", state=" + state +
+                "}";
     }
 }

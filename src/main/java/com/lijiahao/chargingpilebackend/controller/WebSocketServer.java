@@ -63,6 +63,11 @@ public class WebSocketServer {
         // 发送当前用户未读取信息
         List<Message> unreadMessage = messageService.getNotReadMessageByUserId(userId);
         unreadMessage.forEach(message -> {
+            if (message.getType().equals("IMAGE")) { // 图片类型的消息，需要一个 本地地址 -》 远程地址的过程
+                String absolutePath = message.getText();
+                String realPath = "/message/getChatImage?url=" + absolutePath;
+                message.setText(realPath);
+            }
            sendMessage(message.toMessageRequest());
            message.setState("READ");
         });

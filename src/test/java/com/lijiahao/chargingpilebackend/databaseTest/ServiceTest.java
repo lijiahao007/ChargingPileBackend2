@@ -15,7 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -237,4 +239,29 @@ public class ServiceTest {
 
     }
 
+
+    @Test
+    public void testTimeStamp() {
+        LocalDateTime beginTime = LocalDateTime.of(2022, 4, 20, 16, 0, 0);
+        LocalDateTime endTime = LocalDateTime.of(2022, 4, 20, 20, 0, 0);
+
+        List<Order> list = orderService.list(
+                new QueryWrapper<Order>()
+                        .not(orderQueryWrapper -> orderQueryWrapper.le("complete_time", beginTime)
+                                .or().ge("create_time", endTime)));
+
+        long count = orderService.count(new QueryWrapper<Order>()
+                .not(orderQueryWrapper -> orderQueryWrapper.le("complete_time", beginTime)
+                        .or().ge("create_time", endTime)));
+        list.forEach (order -> {
+            System.out.println("order!!!:=" + order);
+        });
+        System.out.println("count = " + count);
+    }
+
+    @Test
+    public void testQueryNothing() {
+        Order order = orderService.getById(0);
+        System.out.println("order = " + order);
+    }
 }

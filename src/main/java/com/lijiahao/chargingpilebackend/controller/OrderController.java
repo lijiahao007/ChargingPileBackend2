@@ -138,7 +138,12 @@ public class OrderController {
         LocalDateTime chargeBeginTime = order.getBeginChargeTime();
         LocalDateTime chargeEndTime = order.getCompleteTime();
         double sumPrice = 0.0;
-        sumPrice += calChargingFee(electricPeriods, chargeBeginTime, chargeEndTime, powerRate);
+        sumPrice += calChargingFee(electricPeriods, chargeBeginTime, chargeEndTime, powerRate); // 充电费用
+        ChargingPileStation station = chargingPileStationService.getById(stationId);
+        double parkFee = station.getParkFee();
+        double parkTime = Duration.between(chargeBeginTime, chargeEndTime).toMinutes();
+        double totalParkFee = parkTime / 60.0 * parkFee; // 停车费用
+        sumPrice += totalParkFee; // 停车费用
 
         // 5. 修改订单状态
         order.setPrice((float) sumPrice);
