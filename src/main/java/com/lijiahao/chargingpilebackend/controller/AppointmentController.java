@@ -16,14 +16,11 @@ import com.lijiahao.chargingpilebackend.service.impl.UserServiceImpl;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.stereotype.Controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * <p>
@@ -80,7 +77,7 @@ public class AppointmentController {
         LocalDateTime beginDateTime = LocalDateTime.of(date, beginTime);
         LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
         appointment.setBeginDateTime(beginDateTime);
-        appointment.setEndDateTime(endDateTime);    
+        appointment.setEndDateTime(endDateTime);
         appointment.setPileId(request.pileId);
         appointment.setUserId(request.userId);
         appointment.setStationId(request.stationId);
@@ -97,5 +94,16 @@ public class AppointmentController {
 
         appointmentService.save(appointment);
         return mapper.writeValueAsString(AddAppointmentResponse.SUCCESS);
+    }
+
+
+
+    @ApiOperation("获取某个用户的预约")
+    @GetMapping("/getAppointmentByUserId")
+    public List<Appointment> getAppointmentByUserId(@RequestParam("userId") Integer userId) {
+        return appointmentService.list(new QueryWrapper<Appointment>()
+                .eq("user_id", userId)
+                .orderByDesc("begin_date_time")
+        );
     }
 }

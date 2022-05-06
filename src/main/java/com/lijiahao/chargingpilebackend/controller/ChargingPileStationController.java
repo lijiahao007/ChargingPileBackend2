@@ -231,6 +231,7 @@ public class ChargingPileStationController {
     }
 
 
+
     @ApiOperation("获取每个站点对应的图片url")
     @GetMapping("/getStationPicUrl")
     public List<String> getStationPic(HttpServletRequest request, @RequestParam("stationId") int stationId) {

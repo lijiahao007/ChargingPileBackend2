@@ -264,4 +264,16 @@ public class ServiceTest {
         Order order = orderService.getById(0);
         System.out.println("order = " + order);
     }
+
+    @Test
+    public void orderTimeTest() {
+        List<Order> orders = orderService.list(new QueryWrapper<Order>()
+                .orderByAsc("create_time"));
+        System.out.println(orders);
+
+        orders.forEach(order -> {
+            System.out.println(order.getCreateTime());
+        });
+
+    }
 }
