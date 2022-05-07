@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lijiahao.chargingpilebackend.controller.requestparam.AddAppointmentRequest;
+import com.lijiahao.chargingpilebackend.controller.requestparam.ModifyAppointmentRequest;
 import com.lijiahao.chargingpilebackend.controller.response.AddAppointmentResponse;
 import com.lijiahao.chargingpilebackend.entity.Appointment;
 import com.lijiahao.chargingpilebackend.entity.ChargingPile;
@@ -53,7 +54,8 @@ public class AppointmentController {
     public List<Appointment> getAppointmentByStationId(@RequestParam("stationId") Integer stationId) {
         return appointmentService.list(new QueryWrapper<Appointment>()
                 .eq("station_id", stationId)
-                .eq("state", Appointment.STATE_WAITING));
+                .eq("state", Appointment.STATE_WAITING)
+                .ge("end_date_time", LocalDateTime.now()));
     }
 
     @ApiOperation("添加预约")
@@ -97,7 +99,6 @@ public class AppointmentController {
     }
 
 
-
     @ApiOperation("获取某个用户的预约")
     @GetMapping("/getAppointmentByUserId")
     public List<Appointment> getAppointmentByUserId(@RequestParam("userId") Integer userId) {
@@ -105,5 +106,31 @@ public class AppointmentController {
                 .eq("user_id", userId)
                 .orderByDesc("begin_date_time")
         );
+    }
+
+    @ApiOperation("修改某个Appointment时间")
+    @PostMapping("modifyAppointment")
+    public String modifyAppointment(@RequestBody ModifyAppointmentRequest request) throws JsonProcessingException {
+
+        int appointmentId = request.id;
+        Appointment appointment = appointmentService.getById(appointmentId);
+
+        if (appointment == null) {
+            return mapper.writeValueAsString(AddAppointmentResponse.FAIL);
+        }
+
+        LocalDateTime beginDateTime = LocalDateTime.parse(request.beginDateTime);
+        LocalDateTime endDateTime = LocalDateTime.parse(request.endDateTime);
+        appointment.setBeginDateTime(beginDateTime);
+        appointment.setEndDateTime(endDateTime);
+        appointmentService.updateById(appointment);
+        return mapper.writeValueAsString(AddAppointmentResponse.SUCCESS);
+    }
+
+    @ApiOperation("删除某个Appointment时间")
+    @PostMapping("deleteAppointment")
+    public String deleteAppointment(@RequestParam("stationId") Integer appointment) throws JsonProcessingException {
+        appointmentService.removeById(appointment);
+        return mapper.writeValueAsString(AddAppointmentResponse.SUCCESS);
     }
 }

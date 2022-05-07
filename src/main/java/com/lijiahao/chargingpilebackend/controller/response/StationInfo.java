@@ -19,4 +19,5 @@ public class StationInfo {
     List<OpenDayInWeek> openDayList;
     List<String> picList;
     List<ElectricChargePeriod> chargePeriodList;
+    List<Appointment> appointmentList;
 }

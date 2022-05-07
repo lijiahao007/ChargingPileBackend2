@@ -19,4 +19,5 @@ public class StationAllInfo {
     Map<Integer, List<OpenDayInWeek>> openDayMap;
     Map<Integer, List<String>> picMap;
     Map<Integer, List<ElectricChargePeriod>> electricChargePeriodMap;
+    Map<Integer, List<Appointment>> appointmentMap;
 }

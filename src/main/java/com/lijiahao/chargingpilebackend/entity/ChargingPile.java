@@ -31,6 +31,7 @@ public class ChargingPile implements Serializable {
     public static final String STATE_USING="使用中";
     public static final String STATE_FREE="空闲";
     public static final String STATE_SUSPEND="暂停营业";
+    public static final String STATE_APPOINTMENT="预约中";
 
 
     @TableId(value = "id", type = IdType.AUTO)

@@ -59,6 +59,7 @@ public class ChargingPileStationController {
     private final TagsStationMapServiceImpl tagsStationMapService;
     private final OpenDayInWeekServiceImpl openDayInWeekService;
     private final ElectricChargePeriodServiceImpl electricChargePeriodService;
+    private final AppointmentServiceImpl appointmentService;
     private final ObjectMapper mapper = new ObjectMapper();
 
 
@@ -71,7 +72,8 @@ public class ChargingPileStationController {
             StationPicServiceImpl stationPicService,
             TagsStationMapServiceImpl tagsStationMapService,
             OpenDayInWeekServiceImpl openDayInWeekService,
-            ElectricChargePeriodServiceImpl electricChargePeriodService) {
+            ElectricChargePeriodServiceImpl electricChargePeriodService,
+            AppointmentServiceImpl appointmentService) {
         this.userService = userService;
         this.chargingPileService = chargingPileService;
         this.openTimeService = openTimeService;
@@ -80,6 +82,7 @@ public class ChargingPileStationController {
         this.tagsStationMapService = tagsStationMapService;
         this.openDayInWeekService = openDayInWeekService;
         this.electricChargePeriodService = electricChargePeriodService;
+        this.appointmentService = appointmentService;
     }
 
     private int index = 1;
@@ -190,7 +193,8 @@ public class ChargingPileStationController {
         Map<Integer, List<String>> picMap = stationPicService.getStationPicUrl();
         picMap = stationPicService.getStationPicUrlWithPrefix(picMap, request);
         Map<Integer, List<ElectricChargePeriod>> electricChargePeriodMap = electricChargePeriodService.getElectricChargePeriod();
-        return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap, electricChargePeriodMap);
+        Map<Integer, List<Appointment>> appointmentMap = appointmentService.getAppointment();
+        return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap, electricChargePeriodMap, appointmentMap);
     }
 
 
@@ -204,7 +208,6 @@ public class ChargingPileStationController {
             stationIds.add(0); // 如果是空的，就插入一个不可能存在的id
         }
 
-
         Map<Integer, List<Tags>> tagMap = tagsStationMapService.getStationTags(stationIds);
         Map<Integer, List<ChargingPile>> pileMap = chargingPileService.getStationChargingPile(stationIds);
         Map<Integer, List<OpenTime>> openTimeMap = openTimeService.getStationOpenTime(stationIds);
@@ -212,7 +215,8 @@ public class ChargingPileStationController {
         Map<Integer, List<String>> picMap = stationPicService.getStationPicUrl(stationIds);
         picMap = stationPicService.getStationPicUrlWithPrefix(picMap, request);
         Map<Integer, List<ElectricChargePeriod>> electricChargePeriodMap = electricChargePeriodService.getElectricChargePeriod(stationIds);
-        return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap, electricChargePeriodMap);
+        Map<Integer, List<Appointment>> appointmentMap = appointmentService.getAppointment(stationIds);
+        return new StationAllInfo(stations, tagMap, pileMap, openTimeMap, openDayInWeekMap, picMap, electricChargePeriodMap, appointmentMap);
     }
 
 
@@ -227,10 +231,10 @@ public class ChargingPileStationController {
         List<String> picList = stationPicService.getStationPicUrlByStationId(stationId);
         picList = stationPicService.getStationPicUrlWithPrefix(picList, request);
         List<ElectricChargePeriod> electricChargePeriods = electricChargePeriodService.getElectricChargePeriodByStationId(stationId);
-        return new StationInfo(station, tags, chargingPiles, openTimes, openDayInWeeks, picList, electricChargePeriods);
+        List<Appointment> appointmentList = appointmentService.getAppointmentByStationId(stationId);
+        return new StationInfo(station, tags, chargingPiles, openTimes, openDayInWeeks, picList, electricChargePeriods, appointmentList);
     }
-
-
+    
 
     @ApiOperation("获取每个站点对应的图片url")
     @GetMapping("/getStationPicUrl")

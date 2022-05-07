@@ -27,6 +27,7 @@ public class Appointment implements Serializable {
     public static final String STATE_FINISH = "已完成";
     public static final String STATE_CANCEL = "已取消";
     public static final String STATE_WAITING = "待使用";
+    public static final String STATE_OUT_DATE = "已过期";
 
 
     @TableId(value = "id", type = IdType.AUTO)
