@@ -234,7 +234,7 @@ public class ChargingPileStationController {
         List<Appointment> appointmentList = appointmentService.getAppointmentByStationId(stationId);
         return new StationInfo(station, tags, chargingPiles, openTimes, openDayInWeeks, picList, electricChargePeriods, appointmentList);
     }
-    
+
 
     @ApiOperation("获取每个站点对应的图片url")
     @GetMapping("/getStationPicUrl")

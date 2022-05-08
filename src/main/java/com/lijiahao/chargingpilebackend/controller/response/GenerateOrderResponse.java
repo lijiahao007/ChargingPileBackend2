@@ -12,6 +12,7 @@ public class GenerateOrderResponse {
     public static final String SUCCESS="success";
     public static final String USING = "using";
     public static final String SUSPEND = "suspend";
+    public static final String APPOINTMENT = "appointment";
 
     String code;
     Order order;

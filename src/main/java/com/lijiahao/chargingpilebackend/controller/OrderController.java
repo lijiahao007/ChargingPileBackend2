@@ -5,10 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lijiahao.chargingpilebackend.controller.response.GenerateOrderResponse;
 import com.lijiahao.chargingpilebackend.controller.response.QueryOrderResponse;
-import com.lijiahao.chargingpilebackend.entity.ChargingPile;
-import com.lijiahao.chargingpilebackend.entity.ChargingPileStation;
-import com.lijiahao.chargingpilebackend.entity.ElectricChargePeriod;
-import com.lijiahao.chargingpilebackend.entity.Order;
+import com.lijiahao.chargingpilebackend.entity.*;
 import com.lijiahao.chargingpilebackend.service.impl.*;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +48,9 @@ public class OrderController {
     @Autowired
     ElectricChargePeriodServiceImpl electricChargePeriodService;
 
+    @Autowired
+    AppointmentServiceImpl appointmentService;
+
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -78,7 +78,21 @@ public class OrderController {
             return response;
         }
 
-//         2. 更新充电桩状态
+        // 1.1 查看是否处在预约状态中
+        LocalDateTime now = LocalDateTime.now();
+        long count = appointmentService.count(new QueryWrapper<Appointment>()
+                .eq("pile_id", pileId)
+                .eq("state", Appointment.STATE_WAITING)
+                .le("begin_date_time", now)
+                .ge("end_date_time", now)
+        ); // beginTime <= now <= endTime
+        if (count > 0) {
+            response.setCode(GenerateOrderResponse.APPOINTMENT);
+            response.setOrder(new Order());
+            return response;
+        }
+
+        // 2. 更新充电桩状态
         pile.setState(ChargingPile.STATE_USING);
         chargingPileService.updateById(pile);
 

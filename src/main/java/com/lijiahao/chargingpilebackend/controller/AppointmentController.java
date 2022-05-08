@@ -21,7 +21,10 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -47,7 +50,7 @@ public class AppointmentController {
     @Autowired
     UserServiceImpl userService;
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @ApiOperation("根据stationId 获取对应充电站的未完成的充电信息")
     @GetMapping("/getAppointmentByStationId")
@@ -132,5 +135,23 @@ public class AppointmentController {
     public String deleteAppointment(@RequestParam("stationId") Integer appointment) throws JsonProcessingException {
         appointmentService.removeById(appointment);
         return mapper.writeValueAsString(AddAppointmentResponse.SUCCESS);
+    }
+
+    @ApiOperation("获取所有未完成的Appointment")
+    @GetMapping("getAllAppointment")
+    public Map<Integer, List<Appointment>> getAllAppointment() {
+        List<Appointment> appointments = appointmentService.list(new QueryWrapper<Appointment>().eq("state", Appointment.STATE_WAITING));
+        HashMap<Integer, List<Appointment>> map = new HashMap<>();
+        for (Appointment appointment: appointments) {
+            int stationId = appointment.getStationId();
+            if (map.containsKey(stationId)) {
+                map.get(stationId).add(appointment);
+            } else {
+                List<Appointment> list = new ArrayList<>();
+                list.add(appointment);
+                map.put(stationId, list);
+            }
+        }
+        return map;
     }
 }
