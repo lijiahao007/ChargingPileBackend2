@@ -85,11 +85,25 @@ public class OrderController {
                 .eq("state", Appointment.STATE_WAITING)
                 .le("begin_date_time", now)
                 .ge("end_date_time", now)
+                .ne("user_id", userId)
         ); // beginTime <= now <= endTime
         if (count > 0) {
             response.setCode(GenerateOrderResponse.APPOINTMENT);
             response.setOrder(new Order());
             return response;
+        }
+
+        // 1.2 如果有预约就更新预约状态
+        Appointment appointment = appointmentService.getOne(new QueryWrapper<Appointment>()
+                .eq("pile_id", pileId)
+                .eq("state", Appointment.STATE_WAITING)
+                .le("begin_date_time", now)
+                .ge("end_date_time", now)
+                .eq("user_id", userId)
+        );
+        if (appointment != null) {
+            appointment.setState(Appointment.STATE_FINISH);
+            appointmentService.updateById(appointment);
         }
 
         // 2. 更新充电桩状态
@@ -242,8 +256,10 @@ public class OrderController {
         HashSet<Integer> stationSet = new HashSet<>();
         for (Integer pileId : pileSet) {
             ChargingPile pile = chargingPileService.getById(pileId);
-            stationSet.add(pile.getStationId());
-            pileStationMap.put(pileId, pile.getStationId());
+            if(pile != null) {
+                stationSet.add(pile.getStationId());
+                pileStationMap.put(pileId, pile.getStationId());
+            }
         }
         stationSet.addAll(stationPileServiceOrderMap.keySet());
         HashMap<Integer, ChargingPileStation> relateStationMap = new HashMap<>();
